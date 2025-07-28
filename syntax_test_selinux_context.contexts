@@ -1,0 +1,57 @@
+# SYNTAX TEST "Packages/Android Syntax/SELinux.context.sublime-syntax"
+#
+# Copyright (C) 2025 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+/(vendor|system/vendor)/bin/hw/android\.hardware\.atrace@1\.0-service         u:object_r:hal_atrace_default_exec:s0
+# <- string.unquoted.path.selinux.contexts
+#                                                                             ^ entity.other.user.selinux.contexts
+#                                                                              ^ punctuation.separator.colon.selinux.contexts
+#                                                                               ^ entity.other.role.selinux.contexts
+#                                                                                       ^ punctuation.separator.colon.selinux.contexts
+#                                                                                        ^ entity.other.type.selinux.contexts
+#                                                                                                               ^ punctuation.separator.colon.selinux.contexts
+#                                                                                                                ^ entity.other.level.selinux.contexts
+
+/(vendor|system/vendor)/lib(64)?/hw/android\.hardware\.graphics\.mapper@2\.0-impl\.so u:object_r:same_process_hal_file:s0
+# <- string.unquoted.path.selinux.contexts
+#                                                                                     ^ entity.other.user.selinux.contexts
+#                                                                                      ^ punctuation.separator.colon.selinux.contexts
+#                                                                                       ^ entity.other.role.selinux.contexts
+#                                                                                               ^ punctuation.separator.colon.selinux.contexts
+#                                                                                                ^ entity.other.type.selinux.contexts
+#                                                                                                                     ^ punctuation.separator.colon.selinux.contexts
+#                                                                                                                      ^ entity.other.level.selinux.contexts
+
+/data/vendor/wifi/hostapd(/.*)?                                               u:object_r:hostapd_data_file:s0
+# <- string.unquoted.path.selinux.contexts
+#                                                                             ^ entity.other.user.selinux.contexts
+#                                                                              ^ punctuation.separator.colon.selinux.contexts
+#                                                                               ^ entity.other.role.selinux.contexts
+#                                                                                       ^ punctuation.separator.colon.selinux.contexts
+#                                                                                        ^ entity.other.type.selinux.contexts
+#                                                                                                         ^ punctuation.separator.colon.selinux.contexts
+#                                                                                                          ^ entity.other.level.selinux.contexts
+
+genfscon proc /kmsg -- u:object_r:proc_kmsg_t:s15:c0.c255
+# ^ keyword.control.selinux.contexts
+#        ^ variable.other.fs_type.selinux.contexts
+#             ^ string.unquoted.path.selinux.contexts
+#                      ^ entity.other.user.selinux.contexts
+#                       ^ punctuation.separator.colon.selinux.contexts
+#                         ^ entity.other.role.selinux.contexts
+#                                ^ punctuation.separator.colon.selinux.contexts
+#                                 ^ entity.other.type.selinux.contexts
+#                                            ^ punctuation.separator.colon.selinux.contexts
+#                                             ^ entity.other.level.selinux.contexts

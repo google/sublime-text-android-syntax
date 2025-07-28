@@ -1,0 +1,282 @@
+# SYNTAX TEST "SELinux.te.sublime-syntax"
+#
+# Copyright (C) 2025 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# --- Comments ---
+# A line comment
+# <- comment.line.number-sign.te punctuation.definition.comment.te
+
+# --- Declarations ---
+type adbd, domain;
+# <- keyword.declaration.te
+#    ^ entity.name.type.te
+#        ^ punctuation.separator.comma.te
+#          ^ entity.other.attribute.te
+#                ^ punctuation.terminator.statement.te
+
+type adbd_exec, exec_type, file_type, system_file_type;
+# <- keyword.declaration.te
+#    ^ entity.name.type.te
+#             ^ punctuation.separator.comma.te
+#               ^ entity.other.attribute.te
+#                        ^ punctuation.separator.comma.te
+#                          ^ entity.other.attribute.te
+#                                   ^ punctuation.separator.comma.te
+#                                     ^ entity.other.attribute.te
+#                                                     ^ punctuation.terminator.statement.te
+
+attribute domain;
+# <- keyword.declaration.te
+#         ^ entity.name.attribute.te
+#               ^ punctuation.terminator.statement.te
+
+typeattribute adbd domain;
+# <- keyword.declaration.te
+#             ^ storage.type.te
+#                    ^ entity.other.attribute.te
+#                        ^ punctuation.terminator.statement.te
+
+# --- Rules ---
+allow adbd init:fd use;
+# <- keyword.control.te
+#     ^ storage.type.te
+#          ^ storage.type.te
+#              ^ punctuation.separator.colon.te
+#               ^ support.class.te
+#                  ^ constant.other.permission.te
+#                     ^ punctuation.terminator.statement.te
+
+allow domain self:chr_file { read write };
+# <- keyword.control.te
+#     ^ storage.type.te
+#            ^ variable.language.self.te
+#                ^ punctuation.separator.colon.te
+#                 ^ support.class.te
+#                          ^ meta.braces.permissions.te punctuation.section.braces.begin.te
+#                            ^ meta.braces.permissions.te constant.other.permission.te
+#                                 ^ meta.braces.permissions.te constant.other.permission.te
+#                                       ^ meta.braces.permissions.te punctuation.section.braces.end.te
+#                                        ^ punctuation.terminator.statement.te
+
+neverallow { domain -init -recovery } unlabeled:dir_file_class_set create;
+# <- keyword.control.te
+#          ^ meta.braces.types.te punctuation.section.braces.begin.te
+#            ^ meta.braces.types.te storage.type.te
+#                   ^ meta.braces.types.te keyword.operator.set.te
+#                    ^ meta.braces.types.te storage.type.te
+#                         ^ meta.braces.types.te keyword.operator.set.te
+#                          ^ meta.braces.types.te storage.type.te
+#                                   ^ meta.braces.types.te punctuation.section.braces.end.te
+#                                     ^ storage.type.te
+#                                              ^ punctuation.separator.colon.te
+#                                               ^ support.constant.class-set.te
+#                                                                  ^ constant.other.permission.te
+#                                                                        ^ punctuation.terminator.statement.te
+
+type_transition unconfined_t etc_t : file system_conf_t eric;
+# <- keyword.control.te
+#               ^ storage.type.te
+#                          ^ storage.type.te
+#                                  ^ punctuation.separator.colon.te
+#                                    ^ support.class.te
+#                                         ^ storage.type.te
+#                                                       ^ variable.other.object.te
+#                                                           ^ punctuation.terminator.statement.te
+
+# --- M4 Macros ---
+define(`my_macro`, `
+# <- keyword.control.preprocessor.te
+#     ^ punctuation.section.parens.begin.te
+#      ^ punctuation.definition.string.begin.te
+#       ^ entity.name.function.macro.te
+#               ^ punctuation.definition.string.end.te
+#                ^ punctuation.separator.comma.te
+#                  ^ punctuation.definition.string.begin.te
+allow $1 $2:fd use;
+#     ^ variable.parameter.m4.te
+#        ^ variable.parameter.m4.te
+`)
+# <- punctuation.definition.string.end.te
+#^ punctuation.section.parens.end.te
+
+r_dir_file(domain, self)
+# <- variable.function.macro.te
+#         ^ punctuation.section.parens.begin.te
+#          ^ meta.macro-call.te storage.type.te
+#                ^ meta.macro-call.te punctuation.separator.comma.te
+#                  ^ meta.macro-call.te variable.language.self.te
+#                      ^ meta.macro-call.te punctuation.section.parens.end.te
+
+userdebug_or_eng(`
+# <- variable.function.macro.te
+#                ^ punctuation.definition.string.begin.te
+  allow domain su:fd use;
+# ^^^^^ keyword.control.te
+`)
+# <- punctuation.definition.string.end.te
+
+# --- Permission Sets ---
+allow domain proc:dir r_dir_perms;
+#                     ^ keyword.other.permission-set.te
+
+# --- Invalid Characters ---
+@
+# <- invalid.illegal.te
+
+# --- Booleans and Conditionals ---
+bool allow_execheap false;
+# <- keyword.declaration.te
+#    ^ entity.name.boolean.te
+#                   ^ constant.language.te
+#                        ^ punctuation.terminator.statement.te
+if (allow_execheap) {
+# <- keyword.control.conditional.te
+#  ^ punctuation.section.parens.begin.te
+#   ^ meta.conditional.expression.te variable.other.boolean.te
+#                 ^ punctuation.section.parens.end.te
+#                   ^ punctuation.section.braces.begin.te
+} else {
+# <- punctuation.section.braces.end.te
+# ^ keyword.control.conditional.te
+#      ^ punctuation.section.braces.begin.te
+}
+# <- punctuation.section.braces.end.te
+
+# --- Type Alias and Inheritance ---
+type bin_t alias { ls_exec_t sbin_t };
+# <- keyword.declaration.te
+#    ^ entity.name.type.te
+#          ^ keyword.other.te
+#                ^ punctuation.section.braces.begin.te
+#                  ^ meta.braces.alias.te entity.name.type.alias.te
+#                            ^ meta.braces.alias.te entity.name.type.alias.te
+#                                   ^ punctuation.section.braces.end.te
+#                                    ^ punctuation.terminator.statement.te
+
+typealias mount_t alias mount_ntfs_t;
+# <- keyword.declaration.te
+#         ^ storage.type.te
+#                 ^ keyword.other.te
+#                       ^ entity.name.type.alias.te
+#                                   ^ punctuation.terminator.statement.te
+
+class db_blob inherits database { read write import export };
+# <- keyword.declaration.te
+#     ^ entity.name.class.te
+#               ^ keyword.other.te
+#                        ^ entity.other.common.te
+#                               ^ punctuation.section.braces.begin.te
+#                                 ^ meta.braces.permissions.te entity.name.permission.te
+
+# --- Other Added Keywords ---
+constrain process transition ( r1 == r2 );
+# <- keyword.control.te
+#         ^ support.class.te
+#                   ^ constant.other.permission.te
+#                            ^ punctuation.section.parens.begin.te
+#                                 ^^ keyword.operator.set.te
+#                                       ^ punctuation.section.parens.end.te
+#                                        ^ punctuation.terminator.statement.te
+sensitivity s0;
+# <- keyword.declaration.te
+#           ^ entity.name.sensitivity.te
+dominance { s0 s1 s2 s3 };
+# <- keyword.declaration.te
+#         ^ punctuation.section.braces.begin.te
+#           ^ meta.braces.sensitivities.te entity.other.sensitivity.te
+#              ^ meta.braces.sensitivities.te entity.other.sensitivity.te
+#                 ^ meta.braces.sensitivities.te entity.other.sensitivity.te
+#                    ^ meta.braces.sensitivities.te entity.other.sensitivity.te
+#                       ^ punctuation.section.braces.end.te
+level s0:c0.c255;
+# <- keyword.declaration.te
+#     ^ entity.other.sensitivity.te
+#       ^ punctuation.separator.colon.te
+#        ^ entity.other.category.te
+#          ^ punctuation.separator.dot.te
+#           ^ entity.other.category.te
+sid kernel u:r:kernel:s0;
+# <- keyword.control.te
+#   ^ entity.name.sid.te
+#          ^ string.unquoted.context.te
+#                       ^ punctuation.terminator.statement.te
+policycap network_peer_controls;
+# <- keyword.control.te
+#         ^ variable.other.capability.te
+#                              ^ punctuation.terminator.statement.te
+genfscon proc / u:object_r:proc_t:s0;
+# <- keyword.control.te
+#        ^ variable.other.fs_type.te
+#             ^ string.unquoted.path.te
+#               ^ string.unquoted.context.te
+#                                   ^ punctuation.terminator.statement.te
+unrecognized_statement foo bar;
+# <- invalid.illegal.unrecognized-statement.te
+
+# --- Extended and Specific Rules ---
+attribute_role roles_for_x;
+# <- keyword.declaration.te
+#              ^ entity.name.attribute.te
+#                         ^ punctuation.terminator.statement.te
+
+allowxperm domain self:tcp_socket ioctl { unpriv_sock_ioctls };
+# <- keyword.control.te
+#          ^ storage.type.te
+#                 ^ variable.language.self.te
+#                     ^ punctuation.separator.colon.te
+#                      ^ support.class.te
+#                                 ^ keyword.other.operation.te
+#                                       ^ punctuation.section.braces.begin.te
+#                                         ^ meta.braces.commands.te constant.other.command.te
+#                                                            ^ punctuation.section.braces.end.te
+#                                                             ^ punctuation.terminator.statement.te
+
+typebounds appdomain untrusted_app;
+# <- keyword.control.te
+#          ^ storage.type.te
+#                    ^ storage.type.te
+#                                 ^ punctuation.terminator.statement.te
+
+type_change auditadm_t sysadm_devpts_t:chr_file auditadm_devpts_t;
+# <- keyword.control.te
+#           ^ storage.type.te
+#                      ^ storage.type.te
+#                                     ^ punctuation.separator.colon.te
+#                                      ^ support.class.te
+#                                               ^ storage.type.te
+#                                                                ^ punctuation.terminator.statement.te
+
+permissive unconfined_t;
+# <- keyword.control.te
+#          ^ storage.type.te
+#                      ^ punctuation.terminator.statement.te
+
+portcon tcp 80 u:object_r:http_port_t:s0;
+# <- keyword.control.te
+#       ^ support.constant.protocol.te
+#            ^ constant.numeric.port.te
+#              ^ string.unquoted.context.te
+#                                       ^ punctuation.terminator.statement.te
+
+constrain process transition ( r1 == r2 );
+# <- keyword.control.te
+#         ^ support.class.te
+#                   ^ constant.other.permission.te
+#                            ^ punctuation.section.parens.begin.te
+#                              ^ meta.parens.expression.te variable.language.constraint.te
+#                                 ^^ meta.parens.expression.te keyword.operator.set.te
+#                                    ^ meta.parens.expression.te variable.language.constraint.te
+#                                       ^ punctuation.section.parens.end.te
+#                                        ^ punctuation.terminator.statement.te

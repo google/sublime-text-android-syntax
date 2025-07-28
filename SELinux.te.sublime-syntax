@@ -1,0 +1,1084 @@
+%YAML 1.2
+# Copyright (C) 2025 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+name: SELinux.te
+file_extensions: [te]
+scope: source.te
+
+variables:
+  identifier: '\b[a-zA-Z_][a-zA-Z0-9_]*\b'
+  class_sets: '\b(dir_file_class_set|file_class_set|notdevfile_class_set|devfile_class_set|socket_class_set|dgram_socket_class_set|stream_socket_class_set|unpriv_socket_class_set)\b'
+  permission_sets: '\b(create_dir_perms|create_file_perms|create_ipc_perms|create_socket_perms|create_stream_socket_perms|mac_perms|no_rw_file_perms|no_w_dir_perms|no_w_file_perms|no_x_file_perms|open_perms|post_process_mac_perms|ra_dir_perms|ra_file_perms|r_dir_perms|r_file_perms|r_ipc_perms|rw_dir_perms|rw_file_perms|rw_ipc_perms|rw_socket_perms|rw_stream_socket_perms|rwx_file_perms|rx_file_perms|w_dir_perms|w_file_perms|w_ipc_perms|x_file_perms)\b'
+  rule_keywords: '\b(allow|neverallow|dontaudit|auditallow|role_transition|range_transition|validatetrans|mlsconstrain|mlsvalidatetrans)\b'
+  xperm_keywords: '\b(allowxperm|dontauditxperm|auditallowxperm|neverallowxperm)\b'
+  simple_rules: '\b(permissive|type_member|typebounds)\b'
+  fs_labeling_rules: '\b(fs_use_xattr|fs_use_task|fs_use_trans)\b'
+  hw_labeling_rules: '\b(iomemcon|ioportcon|pcidevicecon)\b'
+  m4_keywords: '\b(define|ifelse|divert)\b'
+
+contexts:
+  prototype:
+    - include: comments
+  main:
+    - include: declarations
+    - include: m4-declarations
+    - include: m4-macros
+    - include: rules
+    - include: unrecognized-statement
+    - include: invalid-characters
+
+  unrecognized-statement:
+    - match: '^\s*({{identifier}})'
+      captures:
+        1: invalid.illegal.unrecognized-statement.te
+
+  or_pop:
+    - match: '(?=\S)'
+      pop: true
+
+  comments:
+    - match: '#'
+      scope: punctuation.definition.comment.te
+      push:
+        - meta_scope: comment.line.number-sign.te
+        - match: $
+          pop: true
+
+  invalid-characters:
+    - match: '[^a-zA-Z0-9_#\s\.;{}("\)\-`]' # Corrected escaping for " and \.
+      scope: invalid.illegal.te
+
+  declarations:
+    - match: '^\s*(type)\b'
+      scope: keyword.declaration.te
+      push: type-declaration-body
+    - match: '^\s*(typealias)\b'
+      scope: keyword.declaration.te
+      push: typealias-declaration-body
+    - match: '^\s*(attribute)\b'
+      scope: keyword.declaration.te
+      push: attribute-declaration-body
+    - match: '^\s*(typeattribute)\b'
+      scope: keyword.declaration.te
+      push: typeattribute-declaration-body
+    - match: '^\s*(role)\b'
+      scope: keyword.declaration.te
+      push: role-declaration-body
+    - match: '^\s*(class)\b'
+      scope: keyword.declaration.te
+      push: class-declaration-body
+    - match: '^\s*(common)\b'
+      scope: keyword.declaration.te
+      push: common-declaration-body
+    - match: '^\s*(bool)\b'
+      scope: keyword.declaration.te
+      push: bool-declaration-body
+    - match: '^\s*(sensitivity)\b'
+      scope: keyword.declaration.te
+      push: sensitivity-declaration-body
+    - match: '^\s*(category)\b'
+      scope: keyword.declaration.te
+      push: category-declaration-body
+    - match: '^\s*(attribute_role)\b'
+      scope: keyword.declaration.te
+      push: attribute-role-declaration-body
+    - match: '^\s*(dominance)\b'
+      scope: keyword.declaration.te
+      push: dominance-declaration-body
+    - match: '^\s*(level)\b'
+      scope: keyword.declaration.te
+      push: level-declaration-body
+
+  attribute-role-declaration-body:
+    - meta_scope: meta.declaration.attribute-role.te
+    - match: '({{identifier}})'
+      captures:
+        1: entity.name.attribute.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  level-declaration-body:
+    - meta_scope: meta.declaration.level.te
+    - match: '({{identifier}})'  # sensitivity
+      captures:
+        1: entity.other.sensitivity.te
+      set: level-after-sensitivity
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  level-after-sensitivity:
+    - meta_scope: meta.declaration.level.te
+    - match: ':'
+      scope: punctuation.separator.colon.te
+      set: level-after-colon
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  level-after-colon:
+    - meta_scope: meta.declaration.level.te
+    - match: '({{identifier}})' # category
+      captures:
+        1: entity.other.category.te
+      set: level-after-category
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  level-after-category:
+    - meta_scope: meta.declaration.level.te
+    - match: '\.'
+      scope: punctuation.separator.dot.te
+      set: level-after-colon # after a dot, we expect another category
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  dominance-declaration-body:
+    - meta_scope: meta.declaration.dominance.te
+    - include: braces-block-of-sensitivities
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  attribute-declaration-body:
+    - meta_scope: meta.declaration.attribute.te
+    - match: '({{identifier}})'
+      captures:
+        1: entity.name.attribute.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  bool-declaration-body:
+    - meta_scope: meta.declaration.boolean.te
+    - match: '({{identifier}})'
+      captures:
+        1: entity.name.boolean.te
+      set: bool-after-name
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  bool-after-name:
+    - meta_scope: meta.declaration.boolean.te
+    - match: '\b(true|false)\b'
+      scope: constant.language.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  sensitivity-declaration-body:
+    - meta_scope: meta.declaration.sensitivity.te
+    - match: '({{identifier}})'
+      captures:
+        1: entity.name.sensitivity.te
+      set: aliasable-declaration-after-name
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  category-declaration-body:
+    - meta_scope: meta.declaration.category.te
+    - match: '({{identifier}})'
+      captures:
+        1: entity.name.category.te
+      set: aliasable-declaration-after-name
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  aliasable-declaration-after-name:
+    - meta_scope: meta.declaration.aliasable.te
+    - match: '\b(alias)\b'
+      scope: keyword.other.te
+      push: alias-declaration-body
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  typeattribute-declaration-body:
+    - meta_scope: meta.declaration.typeattribute.te
+    - match: '({{identifier}})'
+      captures:
+        1: storage.type.te
+      set: typeattribute-after-type
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  typeattribute-after-type:
+    - meta_scope: meta.declaration.typeattribute.te
+    - match: '({{identifier}})'
+      captures:
+        1: entity.other.attribute.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  role-declaration-body:
+    - meta_scope: meta.declaration.role.te
+    - match: '({{identifier}})'
+      captures:
+        1: entity.name.role.te
+      set: role-after-name
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  role-after-name:
+    - meta_scope: meta.declaration.role.te
+    - match: '\b(types)\b'
+      scope: keyword.other.te
+    - match: '{{identifier}}'
+      scope: storage.type.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: braces-block-of-role-types
+    - include: or_pop
+
+  class-declaration-body:
+    - meta_scope: meta.declaration.class.te
+    - match: '({{identifier}})'
+      captures:
+        1: entity.name.class.te
+      set: class-after-name
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  class-after-name:
+    - meta_scope: meta.declaration.class.te
+    - match: '\b(inherits)\b'
+      scope: keyword.other.te
+      set: class-after-inherits
+    - include: braces-block-of-permissions
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  class-after-inherits:
+    - meta_scope: meta.declaration.class.te
+    - match: '({{identifier}})'
+      captures:
+        1: entity.other.common.te
+      set: class-after-common
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  class-after-common:
+    - meta_scope: meta.declaration.class.te
+    - include: braces-block-of-permissions
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  common-declaration-body:
+    - meta_scope: meta.declaration.common.te
+    - match: '({{identifier}})'
+      captures:
+        1: entity.name.common.te
+    - include: braces-block-of-permissions
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  typealias-declaration-body:
+    - meta_scope: meta.declaration.typealias.te
+    - match: '({{identifier}})'
+      captures:
+        1: storage.type.te
+      set: typealias-after-name
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  typealias-after-name:
+    - meta_scope: meta.declaration.typealias.te
+    - match: '\b(alias)\b'
+      scope: keyword.other.te
+      push: alias-declaration-body
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  alias-declaration-body:
+    - meta_scope: meta.declaration.alias.te
+    - match: '({{identifier}})'
+      captures:
+        1: entity.name.type.alias.te
+    - match: '{'
+      scope: punctuation.section.braces.begin.te
+      push:
+        - meta_scope: meta.braces.alias.te
+        - match: '}'
+          scope: punctuation.section.braces.end.te
+          pop: true
+        - match: '{{identifier}}'
+          scope: entity.name.type.alias.te
+    - match: '(?=;|,)'
+      pop: true
+    - include: or_pop
+
+  type-declaration-body:
+    - meta_scope: meta.declaration.type.te
+    - match: '({{identifier}})'
+      captures:
+        1: entity.name.type.te
+      set: type-declaration-after-name
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  type-declaration-after-name:
+    - meta_scope: meta.declaration.type.te
+    - match: ','
+      scope: punctuation.separator.comma.te
+    - match: '\b(alias)\b'
+      scope: keyword.other.te
+      push: alias-declaration-body
+    - match: '{{identifier}}'
+      scope: entity.other.attribute.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  declaration-body:
+    - meta_scope: meta.declaration.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - match: '(?<=})\s*'
+      pop: true
+    - include: common-constructs
+
+  rules:
+    - match: '\b(if)\b'
+      scope: keyword.control.conditional.te
+      push: conditional-body
+    - match: '\b(sid)\b'
+      scope: keyword.control.te
+      push: sid-rule-body
+    - match: '\b(genfscon)\b'
+      scope: keyword.control.te
+      push: genfscon-rule-body
+    - match: '\b(policycap)\b'
+      scope: keyword.control.te
+      push: policycap-rule-body
+    - match: '\b(constrain)\b'
+      scope: keyword.control.te
+      push: constrain-rule-body
+    - match: '\b(type_transition)\b'
+      scope: keyword.control.te
+      push: type-transition-rule-body
+    - match: '{{xperm_keywords}}'
+      scope: keyword.control.te
+      push: xperm-rule-body
+    - match: '{{simple_rules}}'
+      scope: keyword.control.te
+      push: simple-rule-body
+    - match: '{{fs_labeling_rules}}'
+      scope: keyword.control.te
+      push: fs-label-rule-body
+    - match: '\b(portcon)\b'
+      scope: keyword.control.te
+      push: portcon-rule-body
+    - match: '\b(netifcon)\b'
+      scope: keyword.control.te
+      push: netifcon-rule-body
+    - match: '\b(nodecon)\b'
+      scope: keyword.control.te
+      push: nodecon-rule-body
+    - match: '{{hw_labeling_rules}}'
+      scope: keyword.control.te
+      push: hw-label-rule-body
+    - match: '\b(type_change)\b'
+      scope: keyword.control.te
+      push: type-change-rule-body
+    - match: '{{rule_keywords}}'
+      scope: keyword.control.te
+      push: rule-body
+
+  type-change-rule-body:
+    - meta_scope: meta.rule.type-change.te
+    - match: '{{identifier}}' # source type
+      scope: storage.type.te
+      set: type-change-after-source
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  type-change-after-source:
+    - meta_scope: meta.rule.type-change.te
+    - match: '{{identifier}}' # target type
+      scope: storage.type.te
+      set: type-change-after-target
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  type-change-after-target:
+    - meta_scope: meta.rule.type-change.te
+    - match: ':'
+      scope: punctuation.separator.colon.te
+      set: type-change-after-colon
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  type-change-after-colon:
+    - meta_scope: meta.rule.type-change.te
+    - match: '{{identifier}}' # class
+      scope: support.class.te
+      set: type-change-after-class
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  type-change-after-class:
+    - meta_scope: meta.rule.type-change.te
+    - match: '{{identifier}}' # new_type
+      scope: storage.type.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  type-transition-rule-body:
+    - meta_scope: meta.rule.type-transition.te
+    - match: '{{identifier}}' # source type
+      scope: storage.type.te
+      set: type-transition-after-source
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  type-transition-after-source:
+    - meta_scope: meta.rule.type-transition.te
+    - match: '{{identifier}}' # target type
+      scope: storage.type.te
+      set: type-transition-after-target
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  type-transition-after-target:
+    - meta_scope: meta.rule.type-transition.te
+    - match: ':'
+      scope: punctuation.separator.colon.te
+      set: type-transition-after-colon
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  type-transition-after-colon:
+    - meta_scope: meta.rule.type-transition.te
+    - match: '{{identifier}}' # class
+      scope: support.class.te
+      set: type-transition-after-class
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  type-transition-after-class:
+    - meta_scope: meta.rule.type-transition.te
+    - match: '{{identifier}}' # new_type
+      scope: storage.type.te
+      set: type-transition-after-new-type
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  type-transition-after-new-type:
+    - meta_scope: meta.rule.type-transition.te
+    - match: '{{identifier}}'  # object_name
+      scope: variable.other.object.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  conditional-body:
+    - meta_scope: meta.conditional.te
+    - match: '\('
+      scope: punctuation.section.parens.begin.te
+      push:
+        - meta_scope: meta.conditional.expression.te
+        - match: '\)'
+          scope: punctuation.section.parens.end.te
+          pop: true
+        - match: '{{identifier}}'
+          scope: variable.other.boolean.te
+        - include: set-operators
+    - match: '{'
+      scope: punctuation.section.braces.begin.te
+      push:
+        - meta_scope: meta.braces.conditional.te
+        - match: '}'
+          scope: punctuation.section.braces.end.te
+          pop: true
+        - include: rules
+    - match: '\b(else)\b'
+      scope: keyword.control.conditional.te
+    - match: '(?=;)'
+      pop: true
+    - include: or_pop
+
+  constrain-rule-body:
+    - meta_scope: meta.rule.constrain.te
+    - match: '{{identifier}}'
+      scope: support.class.te
+      set: constrain-after-class
+    - include: braces-block-of-classes
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  constrain-after-class:
+    - meta_scope: meta.rule.constrain.te
+    - match: '{{identifier}}'
+      scope: constant.other.permission.te
+      set: constrain-after-permission
+    - include: braces-block-of-rule-permissions
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  constrain-after-permission:
+    - meta_scope: meta.rule.constrain.te
+    - match: '\('
+      scope: punctuation.section.parens.begin.te
+      push:
+        - meta_scope: meta.parens.expression.te
+        - match: '\)'
+          scope: punctuation.section.parens.end.te
+          pop: true
+        - match: '\b(u1|u2|r1|r2|t1|t2|l1|h1|l2|h2)\b'
+          scope: variable.language.constraint.te
+        - include: set-operators
+        - include: common-constructs
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  policycap-rule-body:
+    - meta_scope: meta.rule.policycap.te
+    - match: '{{identifier}}'
+      scope: variable.other.capability.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  genfscon-rule-body:
+    - meta_scope: meta.rule.genfscon.te
+    - match: '{{identifier}}' # fs_type
+      scope: variable.other.fs_type.te
+      set: genfscon-after-fs-type
+    - include: or_pop
+
+  genfscon-after-fs-type:
+    - meta_scope: meta.rule.genfscon.te
+    - match: '\S+' # path
+      scope: string.unquoted.path.te
+      set: genfscon-after-path
+    - include: or_pop
+
+  genfscon-after-path:
+    - meta_scope: meta.rule.genfscon.te
+    - match: 'u:(r|object_r):{{identifier}}:s[0-9]+' # context
+      scope: string.unquoted.context.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  sid-rule-body:
+    - meta_scope: meta.rule.sid.te
+    - match: '({{identifier}})' # name
+      captures:
+        1: entity.name.sid.te
+      set: sid-after-name
+    - include: or_pop
+
+  sid-after-name:
+    - meta_scope: meta.rule.sid.te
+    - match: 'u:(r|object_r):{{identifier}}:s[0-9]+' # context
+      scope: string.unquoted.context.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  simple-rule-body:
+    - meta_scope: meta.rule.simple.te
+    - match: '{{identifier}}'
+      scope: storage.type.te
+    - match: ':'
+      scope: punctuation.separator.colon.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  fs-label-rule-body:
+    - meta_scope: meta.rule.fs-label.te
+    - match: '{{identifier}}' # fs_type
+      scope: variable.other.fs_type.te
+      set: fs-label-after-fs-type
+    - include: or_pop
+
+  fs-label-after-fs-type:
+    - meta_scope: meta.rule.fs-label.te
+    - match: 'u:(r|object_r):{{identifier}}:s[0-9]+' # context
+      scope: string.unquoted.context.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  portcon-rule-body:
+    - meta_scope: meta.rule.portcon.te
+    - match: '\b(tcp|udp|dccp|sctp)\b'
+      scope: support.constant.protocol.te
+      set: portcon-after-protocol
+    - include: or_pop
+
+  portcon-after-protocol:
+    - meta_scope: meta.rule.portcon.te
+    - match: '[0-9]+(-[0-9]+)?'
+      scope: constant.numeric.port.te
+      set: portcon-after-port
+    - include: or_pop
+
+  portcon-after-port:
+    - meta_scope: meta.rule.portcon.te
+    - match: 'u:(r|object_r):{{identifier}}:s[0-9]+' # context
+      scope: string.unquoted.context.te
+      set: portcon-after-context
+    - include: or_pop
+
+  portcon-after-context:
+    - meta_scope: meta.rule.portcon.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  netifcon-rule-body:
+    - meta_scope: meta.rule.netifcon.te
+    - match: '{{identifier}}' # interface
+      scope: variable.other.network.te
+      set: netifcon-after-interface
+    - include: or_pop
+
+  netifcon-after-interface:
+    - meta_scope: meta.rule.netifcon.te
+    - match: 'u:(r|object_r):{{identifier}}:s[0-9]+' # context
+      scope: string.unquoted.context.te
+      set: netifcon-after-context
+    - include: or_pop
+
+  netifcon-after-context:
+    - meta_scope: meta.rule.netifcon.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  nodecon-rule-body:
+    - meta_scope: meta.rule.nodecon.te
+    - match: '{{identifier}}' # addr
+      scope: variable.other.network.te
+      set: nodecon-after-addr
+    - include: or_pop
+
+  nodecon-after-addr:
+    - meta_scope: meta.rule.nodecon.te
+    - match: '[0-9\.]+' # mask
+      scope: constant.numeric.mask.te
+      set: nodecon-after-mask
+    - include: or_pop
+
+  nodecon-after-mask:
+    - meta_scope: meta.rule.nodecon.te
+    - match: 'u:(r|object_r):{{identifier}}:s[0-9]+' # context
+      scope: string.unquoted.context.te
+      set: nodecon-after-context
+    - include: or_pop
+
+  nodecon-after-context:
+    - meta_scope: meta.rule.nodecon.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  hw-label-rule-body:
+    - meta_scope: meta.rule.hw-label.te
+    - match: '[0-9a-fA-F]+' # address, port, or device
+      scope: constant.numeric.hex.te
+    - match: 'u:(r|object_r):{{identifier}}:s[0-9]+' # context
+      scope: string.unquoted.context.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  xperm-rule-body:
+    - meta_scope: meta.rule.xperm.te
+    - match: ':'
+      scope: punctuation.separator.colon.te
+      set: xperm-after-colon
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: braces-block-of-rule-types
+    - match: '\b(self)\b'
+      scope: variable.language.self.te
+    - match: '{{identifier}}'
+      scope: storage.type.te
+
+  xperm-after-colon:
+    - meta_scope: meta.rule.xperm.te
+    - match: '{{identifier}}'
+      scope: support.class.te
+      set: xperm-after-class
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  xperm-after-class:
+    - meta_scope: meta.rule.xperm.te
+    - match: '{{identifier}}'
+      scope: keyword.other.operation.te
+      set: xperm-after-operation
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  xperm-after-operation:
+    - meta_scope: meta.rule.xperm.te
+    - match: '{{identifier}}'
+      scope: constant.other.command.te
+    - include: braces-block-of-commands
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  rule-body:
+    - meta_scope: meta.rule.te
+    - match: ':'
+      scope: punctuation.separator.colon.te
+      set: rule-after-colon
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: parens-block
+    - include: braces-block-of-rule-types
+    - include: strings
+    - match: '\b(self)\b'
+      scope: variable.language.self.te
+    - match: '\b(true|false)\b'
+      scope: constant.language.te
+    - match: '\b(else)\b'
+      scope: keyword.control.conditional.te
+    - match: '{{identifier}}'
+      scope: storage.type.te
+
+  rule-after-colon:
+    - meta_scope: meta.rule.te
+    - match: '{{class_sets}}'
+      scope: support.constant.class-set.te
+      set: rule-after-class
+    - match: '({{identifier}})'
+      captures:
+        1: support.class.te
+      set: rule-after-class
+    - include: braces-block-of-classes
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: or_pop
+
+  rule-after-class:
+    - meta_scope: meta.rule.te
+    - match: ';'
+      scope: punctuation.terminator.statement.te
+      pop: true
+    - include: braces-block-of-rule-permissions
+    - match: '{{permission_sets}}'
+      scope: keyword.other.permission-set.te
+    - match: '{{identifier}}'
+      scope: constant.other.permission.te
+    - include: or_pop
+
+  common-constructs:
+    - include: parens-block
+    - include: braces-block
+    - include: set-operators
+    - include: identifiers-and-keywords
+
+  parens-block:
+    - match: '\('
+      scope: punctuation.section.parens.begin.te
+      push:
+        - meta_scope: meta.parens.te
+        - match: '\)'
+          scope: punctuation.section.parens.end.te
+          pop: true
+        - include: common-constructs
+
+  braces-block:
+    - match: '{'
+      scope: punctuation.section.braces.begin.te
+      push:
+        - meta_scope: meta.braces.te
+        - match: '}'
+          scope: punctuation.section.braces.end.te
+          pop: true
+        - include: set-operators
+        - include: common-constructs
+
+  braces-block-of-sensitivities:
+    - match: '{'
+      scope: punctuation.section.braces.begin.te
+      push:
+        - meta_scope: meta.braces.sensitivities.te
+        - match: '}'
+          scope: punctuation.section.braces.end.te
+          pop: true
+        - match: '{{identifier}}'
+          scope: entity.other.sensitivity.te
+        - include: set-operators
+
+  braces-block-of-role-types:
+    - match: '{'
+      scope: punctuation.section.braces.begin.te
+      push:
+        - meta_scope: meta.braces.types.te
+        - match: '}'
+          scope: punctuation.section.braces.end.te
+          pop: true
+        - match: '{{identifier}}'
+          scope: storage.type.te
+        - include: set-operators
+
+  braces-block-of-rule-types:
+    - match: '{'
+      scope: punctuation.section.braces.begin.te
+      push:
+        - meta_scope: meta.braces.types.te
+        - match: '}'
+          scope: punctuation.section.braces.end.te
+          pop: true
+        - match: '{{identifier}}'
+          scope: storage.type.te
+        - include: set-operators
+
+  braces-block-of-classes:
+    - match: '{'
+      scope: punctuation.section.braces.begin.te
+      push:
+        - meta_scope: meta.braces.classes.te
+        - match: '}'
+          scope: punctuation.section.braces.end.te
+          pop: true
+        - match: '{{identifier}}'
+          scope: support.class.te
+        - include: set-operators
+
+  braces-block-of-permissions:
+    - match: '{'
+      scope: punctuation.section.braces.begin.te
+      push:
+        - meta_scope: meta.braces.permissions.te
+        - match: '}'
+          scope: punctuation.section.braces.end.te
+          pop: true
+        - match: '{{identifier}}'
+          scope: entity.name.permission.te
+        - include: set-operators
+
+  braces-block-of-rule-permissions:
+    - match: '{'
+      scope: punctuation.section.braces.begin.te
+      push:
+        - meta_scope: meta.braces.permissions.te
+        - match: '}'
+          scope: punctuation.section.braces.end.te
+          pop: true
+        - match: '{{identifier}}'
+          scope: constant.other.permission.te
+        - include: set-operators
+
+  braces-block-of-commands:
+    - match: '{'
+      scope: punctuation.section.braces.begin.te
+      push:
+        - meta_scope: meta.braces.commands.te
+        - match: '}'
+          scope: punctuation.section.braces.end.te
+          pop: true
+        - match: '{{identifier}}'
+          scope: constant.other.command.te
+        - include: set-operators
+
+  set-operators:
+    - match: '(-|~|\*|==|!=|&&|\|\|)'
+      scope: keyword.operator.set.te
+
+  strings:
+    - match: '"'
+      scope: punctuation.definition.string.begin.te
+      push:
+        - meta_scope: string.quoted.double.te
+        - match: '"'
+          scope: punctuation.definition.string.end.te
+          pop: true
+        - match: '\\.'
+          scope: constant.character.escape.te
+    - match: '`'
+      scope: punctuation.definition.string.begin.te
+      push:
+        - meta_scope: string.quoted.raw.te
+        - match: '`'
+          scope: punctuation.definition.string.end.te
+          pop: true
+        - include: rules
+
+  identifiers-and-keywords:
+    - match: '\b(self)\b'
+      scope: variable.language.self.te
+    - match: '\b(true|false)\b'
+      scope: constant.language.te
+    - match: '\b(else)\b'
+      scope: keyword.control.conditional.te
+    - match: '\b(alias|inherits|types)\b'
+      scope: keyword.other.te
+    - match: '{{permission_sets}}'
+      scope: keyword.other.permission-set.te
+    - match: '{{class_sets}}'
+      scope: support.constant.class-set.te
+    - match: '{{identifier}}'
+      scope: storage.type.te
+    - match: ':'
+      scope: punctuation.separator.colon.te
+
+  m4-declarations:
+    - match: '^\s*(define)\b'
+      scope: keyword.control.preprocessor.te
+      push: m4-define-body
+
+  m4-macros:
+    - match: '({{identifier}})(\()'
+      captures:
+        1: variable.function.macro.te
+        2: punctuation.section.parens.begin.te
+      push:
+        - meta_scope: meta.macro-call.te
+        - match: '\)'
+          scope: punctuation.section.parens.end.te
+          pop: true
+        - include: m4-macro-args
+
+  m4-macro-args:
+    - match: ','
+      scope: punctuation.separator.comma.te
+    - include: strings
+    - include: common-constructs
+
+  m4-define-body:
+    - meta_scope: meta.declaration.macro.te
+    - match: '\('
+      scope: punctuation.section.parens.begin.te
+      set: m4-define-after-opening-paren
+    - include: or_pop
+
+  m4-define-after-opening-paren:
+    - meta_scope: meta.declaration.macro.te
+    - match: '`'
+      scope: punctuation.definition.string.begin.te
+      push:
+        - meta_scope: string.quoted.raw.te
+        - meta_content_scope: entity.name.function.macro.te
+        - match: '`'
+          scope: punctuation.definition.string.end.te
+          pop: true
+    - match: ','
+      scope: punctuation.separator.comma.te
+      set: m4-define-body-proper
+    - match: '\)'
+      scope: punctuation.section.parens.end.te
+      pop: true
+    - include: or_pop
+
+  m4-define-body-proper:
+    - meta_scope: meta.declaration.macro.body.te
+    - match: '`'
+      scope: punctuation.definition.string.begin.te
+      push:
+        - meta_scope: string.quoted.raw.te
+        - match: '\$[0-9]+'
+          scope: variable.parameter.m4.te
+        - match: '`'
+          scope: punctuation.definition.string.end.te
+          pop: true
+    - match: '(?=\))'
+      set: m4-define-after-opening-paren
+    - include: or_pop

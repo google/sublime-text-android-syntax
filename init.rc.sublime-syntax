@@ -1,0 +1,201 @@
+%YAML 1.2
+# Copyright (C) 2025 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+# Android Init.rc Syntax Definition
+name: Android Init.rc
+scope: source.rc
+file_extensions: [rc]
+
+variables:
+  # Triggers from init/README.md and action_parser.cpp
+  trigger: '(?x)
+    \b(
+      boot | charger | crash | early-init | fs | init | late-fs | late-init |
+      nonencrypted | post-fs-data | queue_property_triggers |
+      trigger | verity-needs-check | early-fs | post-fs | zygote-start |
+      early-boot | bpf-progs-loaded | post-fs-data-checkpointed
+    )\b
+    '
+
+  # Commands from init/builtins.cpp
+  command: '(?x)
+    \b(
+      bootchart |
+      chmod | chown | class_start | class_stop | class_reset | class_restart |
+      copy | copy_per_line |
+      domainname |
+      enable | enter_default_mount_ns |
+      exec | exec_background | exec_start | export |
+      hostname |
+      ifup | init_user0 |
+      insmod | installkey | interface_restart | interface_start | interface_stop |
+      load_exports | load_persist_props | load_system_props | loglevel |
+      mark_post_data | mkdir | mount_all | mount |
+      perform_apex_config |
+      readahead | restart | restorecon | restorecon_recursive | rm | rmdir |
+      setprop | setrlimit | start | stop | swapon_all | swapoff | symlink |
+      sysclktz |
+      trigger |
+      umount | umount_all |
+      verity_update_state |
+      wait | wait_for_prop | write
+    )\b
+    '
+  # Options from init/service_parser.cpp
+  option: '(?x)
+    \b(
+      capabilities | class | console | critical |
+      disabled |
+      enter_namespace |
+      file |
+      gentle_kill | group |
+      interface | ioprio |
+      keycodes |
+      memcg\.limit_in_bytes | memcg\.limit_percent | memcg\.limit_property |
+      memcg\.soft_limit_in_bytes | memcg\.swappiness |
+      namespace |
+      oneshot | onrestart | oom_score_adjust | override |
+      priority |
+      reboot_on_failure | restart_period | rlimit |
+      seclabel | setenv | shared_kallsyms | shutdown | sigstop | socket | stdio_to_kmsg |
+      task_profiles | timeout_period |
+      updatable | user |
+      writepid
+    )\b
+    '
+
+contexts:
+  prototype:
+    - include: comments
+    - include: property-expansion
+
+  main:
+    - match: '^\s*(on)\b'
+      scope: keyword.control.on.rc
+      push: on-section-header
+    - match: '^\s*(service)\b'
+      scope: keyword.control.service.rc
+      push: service-section-header
+    - match: '^\s*(import)\b'
+      scope: keyword.control.import.rc
+      push: import-line
+
+  comments:
+    - match: '(#).*'
+      captures:
+        1: punctuation.definition.comment.rc
+        0: comment.line.number-sign.rc
+
+  property-expansion:
+    - match: \$\{[a-zA-Z0-9._:-]+\}
+      scope: variable.other.property.expansion.rc
+
+  import-line:
+    - include: comments
+    - match: \s+([^\s]+)
+      scope: string.unquoted.path.rc
+    - match: (?=\n)
+      pop: true
+
+  on-section-header:
+    - include: comments
+    - match: '&&'
+      scope: keyword.operator.logical.rc
+    - include: trigger
+    - match: $\n?
+      set: indented-command-block
+
+  indented-command-block:
+    - include: comments
+    - match: '^\s*({{command}})'
+      captures:
+        1: support.function.command.rc
+      push: arguments
+    - match: '^\s*$'
+    - match: '^(?!\s)'
+      pop: true
+
+  service-section-header:
+    - include: comments
+    - match: \s+([a-zA-Z0-9_-]+)
+      scope: entity.name.function.service.rc
+      set: service-command-line
+
+  service-command-line:
+    - include: comments
+    - include: arguments-no-pop
+    - match: $\n?
+      set: indented-option-block
+
+  indented-option-block:
+    - include: comments
+    - match: '^\s*({{option}})'
+      captures:
+        1: support.function.option.rc
+      push: arguments
+    - match: '^\s*$'
+    - match: '^(?!\s)'
+      pop: true
+
+  trigger:
+    - match: '{{trigger}}'
+      scope: support.function.trigger.rc
+    - match: (property):([^=]+)(=)(\*|[^\s]+)
+      captures:
+        1: keyword.other.trigger.property.rc
+        2: variable.other.property.name.rc
+        3: keyword.operator.assignment.rc
+        4: string.unquoted.property.value.rc
+
+  arguments:
+    - match: \\$
+      scope: constant.character.escape.line-continuation.rc
+      set: arguments-continued
+    - match: (?=\n)
+      pop: true
+    - include: argument-tokens
+
+  arguments-continued:
+    - match: '^\s*'
+      set: arguments
+
+  arguments-no-pop:
+    - match: (?=\n)
+      pop: false
+    - include: argument-tokens
+
+  argument-tokens:
+    - match: '"'
+      scope: punctuation.definition.string.begin.rc
+      push: string-body
+    - match: '/[a-zA-Z0-9/._-]+'
+      scope: string.unquoted.path.rc
+    - match: '-?[0-9]+'
+      scope: constant.numeric.integer.rc
+    - match: '\b(root|shell|system|radio|graphics|media)\b'
+      scope: support.constant.user-group.rc
+    - match: '[a-zA-Z0-9_-][a-zA-Z0-9._-]*'
+      scope: string.unquoted.argument.rc
+
+  string-body:
+    - meta_include_prototype: false
+    - match: '"'
+      scope: punctuation.definition.string.end.rc
+      pop: true
+    - include: property-expansion
+    - match: '([^"$]+)'
+      scope: string.quoted.double.rc
+    - match: '\$'
+      scope: string.quoted.double.rc

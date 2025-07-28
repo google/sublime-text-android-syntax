@@ -1,0 +1,141 @@
+%YAML 1.2
+# Copyright (C) 2025 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+name: SELinux Contexts
+file_extensions:
+  - "contexts"
+  - "file_contexts"
+  - "property_contexts"
+  - "service_contexts"
+  - "seapp_contexts"
+  - "initial_sid_contexts"
+  - "vndservice_contexts"
+scope: source.selinux.contexts
+
+variables:
+  identifier: '\b[a-zA-Z_][a-zA-Z0-9_]*\b'
+  user: 'u'
+  role: '\b(r|object_r)\b'
+  type: '{{identifier}}'
+  level: '\bs[0-9]+(?::c[0-9]+(?:\.c[0-9]+)?)?(?:-c[0-9]+(?:\.c[0-9]+)?)?\b'
+  file_type_specifier: '(-b|-c|-d|-p|-l|-s|--)'
+
+contexts:
+  prototype:
+    - include: comments
+
+  main:
+    - match: '^\s*(genfscon)\b'
+      scope: keyword.control.selinux.contexts
+      push: genfscon-after-keyword
+    - match: '^\s*(?=\S)'
+      push: path-rule
+
+  comments:
+    - match: '#'
+      scope: punctuation.definition.comment.selinux.contexts
+      push:
+        - meta_scope: comment.line.number-sign.selinux.contexts
+        - match: $
+          pop: true
+
+  genfscon-after-keyword:
+    - meta_scope: meta.rule.genfscon.selinux.contexts
+    - match: '\s+({{identifier}})\b'
+      captures:
+        1: variable.other.fs_type.selinux.contexts
+      set: genfscon-after-fsname
+    - match: '(?=\s*$)'
+      pop: true
+
+  genfscon-after-fsname:
+    - match: '\s+(\S+)'
+      scope: string.unquoted.path.selinux.contexts
+      set: after-path
+    - match: '(?=\s*$)'
+      pop: true
+
+  path-rule:
+    - meta_scope: meta.rule.path.selinux.contexts
+    - match: '^\s*(\S+)'
+      scope: string.unquoted.path.selinux.contexts
+      set: after-path
+
+  after-path:
+    - match: '\s+({{file_type_specifier}})\b'
+      captures:
+        1: storage.modifier.selinux.contexts
+    - match: '(?=\s+{{user}}:)'
+      set: security-context
+    - match: '(?=\s*$)'
+      pop: true
+
+  security-context:
+    - meta_scope: meta.security-context.selinux.contexts
+    - match: '\s+({{user}})'
+      captures:
+        1: entity.other.user.selinux.contexts
+      set: security-context-after-user
+    - match: '(?=\s*$)'
+      pop: true
+
+  security-context-after-user:
+    - match: ':'
+      scope: punctuation.separator.colon.selinux.contexts
+      set: security-context-after-colon1
+    - match: '(?=\s*$)'
+      pop: true
+
+  security-context-after-colon1:
+    - match: '({{role}})'
+      captures:
+        1: entity.other.role.selinux.contexts
+      set: security-context-after-role
+    - match: '(?=\s*$)'
+      pop: true
+
+  security-context-after-role:
+    - match: ':'
+      scope: punctuation.separator.colon.selinux.contexts
+      set: security-context-after-colon2
+    - match: '(?=\s*$)'
+      pop: true
+
+  security-context-after-colon2:
+    - match: '({{type}})'
+      captures:
+        1: entity.other.type.selinux.contexts
+      set: security-context-after-type
+    - match: '(?=\s*$)'
+      pop: true
+
+  security-context-after-type:
+    - match: ':'
+      scope: punctuation.separator.colon.selinux.contexts
+      set: security-context-after-colon3
+    - match: '(?=\s*$)'
+      pop: true
+
+  security-context-after-colon3:
+    - match: '({{level}})'
+      captures:
+        1: entity.other.level.selinux.contexts
+      set: security-context-after-level
+    - match: '(?=\s*$)'
+      pop: true
+
+  security-context-after-level:
+    - match: '\s*$'
+      pop: true

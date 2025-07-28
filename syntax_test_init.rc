@@ -1,0 +1,89 @@
+# SYNTAX TEST "init.rc.sublime-syntax"
+#
+# Copyright (C) 2025 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# --- Comments ---
+# A line comment
+# <- source.rc comment.line.number-sign.rc
+
+# --- Import ---
+import /init.recovery.samsung.rc
+# <- source.rc keyword.control.import.rc
+#      ^ source.rc string.unquoted.path.rc
+
+# --- 'on' Section ---
+on boot
+# <- source.rc keyword.control.on.rc
+#  ^ source.rc support.function.trigger.rc
+    # This is an action list
+    # <- source.rc comment.line.number-sign.rc
+    mkdir /data/misc/test 0770 system system
+#   ^ source.rc support.function.command.rc
+#         ^ source.rc string.unquoted.path.rc
+#                         ^ source.rc constant.numeric.integer.rc
+#                              ^ source.rc support.constant.user-group.rc
+#                                     ^ source.rc support.constant.user-group.rc
+
+# --- 'on' Section with Multiple Triggers ---
+on boot && property:ro.crypto.state=encrypted
+# <- source.rc keyword.control.on.rc
+#  ^ source.rc support.function.trigger.rc
+#        ^ source.rc keyword.operator.logical.rc
+#          ^ source.rc keyword.other.trigger.property.rc
+#                   ^ source.rc variable.other.property.name.rc
+#                                  ^ source.rc keyword.operator.assignment.rc
+#                                   ^ source.rc string.unquoted.property.value.rc
+    start bootanim
+#   ^ source.rc support.function.command.rc
+#         ^ source.rc string.unquoted.argument.rc
+
+# --- Service Section ---
+service servicemanager /system/bin/servicemanager
+# <- source.rc keyword.control.service.rc
+#       ^ source.rc entity.name.function.service.rc
+#                      ^ source.rc string.unquoted.path.rc
+    # This is a service option list
+    # <- source.rc comment.line.number-sign.rc
+    class core
+#   ^ source.rc support.function.option.rc
+#         ^ source.rc string.unquoted.argument.rc
+    user system
+#   ^ source.rc support.function.option.rc
+#        ^ source.rc support.constant.user-group.rc
+    critical
+#   ^ source.rc support.function.option.rc
+    onrestart restart zygote
+#   ^ source.rc support.function.option.rc
+#             ^ source.rc string.unquoted.argument.rc
+#                       ^ source.rc string.unquoted.argument.rc
+
+# --- Property Expansion and Quoting ---
+on property-test
+    setprop my.prop "a value with ${ro.product.name} spaces"
+#   ^ source.rc support.function.command.rc
+#           ^ source.rc string.unquoted.argument.rc
+#                   ^ source.rc punctuation.definition.string.begin.rc
+#                    ^ source.rc string.quoted.double.rc
+#                                 ^ source.rc variable.other.property.expansion.rc
+#                                                    ^ source.rc string.quoted.double.rc
+#                                                          ^ source.rc punctuation.definition.string.end.rc
+
+# --- Line Continuation ---
+on continuation-test
+    write /sys/class/leds/vibrator/trigger \
+#   ^ source.rc support.function.command.rc
+#                                          ^ source.rc constant.character.escape.line-continuation.rc
+        oneshot
+#       ^ source.rc string.unquoted.argument.rc

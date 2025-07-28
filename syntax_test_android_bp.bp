@@ -1,0 +1,399 @@
+// SYNTAX TEST "Android.bp.sublime-syntax"
+//
+// Copyright (C) 2025 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// --- Comments ---
+// A line comment
+// <- comment.line.double-slash.bp punctuation.definition.comment.bp
+
+/* A block comment */
+// <- comment.block.bp punctuation.definition.comment.bp
+//                 ^ comment.block.bp punctuation.definition.comment.bp
+
+// --- Invalid Comment ---
+# An invalid comment
+// <- invalid.illegal.comment.bp
+
+
+// --- Top-level Assignment ---
+foo = 3
+// <- variable.other.assignment.bp
+//  ^ keyword.operator.assignment.bp
+//    ^ constant.numeric.integer.bp
+
+int_array = [
+// <- variable.other.assignment.bp
+//        ^ keyword.operator.assignment.bp
+//        ^ keyword.operator.assignment.bp
+//          ^ meta.list.bp punctuation.section.brackets.begin.bp
+    1, 2,
+//  ^ meta.list.bp constant.numeric.integer.bp
+//   ^ meta.list.bp punctuation.separator.comma.bp
+//     ^ meta.list.bp constant.numeric.integer.bp
+//      ^ meta.list.bp punctuation.separator.comma.bp
+    3 + 6
+//  ^ meta.list.bp constant.numeric.integer.bp
+//    ^ meta.list.bp keyword.operator.arithmetic.bp
+//      ^ meta.list.bp constant.numeric.integer.bp
+]
+// <- meta.list.bp punctuation.section.brackets.end.bp
+
+my_multiline_int
+// <- variable.other.assignment.bp
+    = 3
+//  ^ keyword.operator.assignment.bp
+//    ^ constant.numeric.integer.bp
+
+my_variable = "value"
+// <- variable.other.assignment.bp
+//          ^ keyword.operator.assignment.bp
+//            ^ string.quoted.double.bp
+
+// Multi-line assignment
+my_multiline_var
+// <- variable.other.assignment.bp
+    = "value"
+//  ^ keyword.operator.assignment.bp
+//    ^ string.quoted.double.bp
+
+my_list_append += [
+// <- variable.other.assignment.bp
+//             ^ keyword.operator.assignment.bp
+//                ^ meta.list.bp punctuation.section.brackets.begin.bp
+    "item",
+//  ^ meta.list.bp string.quoted.double.bp
+//        ^ meta.list.bp punctuation.separator.comma.bp
+]
+// <- meta.list.bp punctuation.section.brackets.end.bp
+
+// --- Module Definition ---
+cc_library {
+// <- support.class.bp
+//         ^ meta.module.bp punctuation.section.braces.begin.bp
+    name: "my_module_name",
+//  ^ meta.module.bp variable.other.property.name.bp
+//      ^ meta.module.bp punctuation.separator.colon.bp
+//        ^ meta.module.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//         ^ meta.module.bp string.quoted.double.bp entity.name.module.bp
+//                       ^ meta.module.bp string.quoted.double.bp punctuation.definition.string.end.bp
+//                        ^ meta.module.bp punctuation.separator.comma.bp
+    name: 4,
+//  ^^^^ meta.module.bp variable.other.property.name.bp
+//      ^ meta.module.bp punctuation.separator.colon.bp
+//        ^ meta.module.bp constant.numeric.integer.bp
+//         ^ meta.module.bp punctuation.separator.comma.bp
+
+    srcs: ":other_module",
+//  ^^^^ meta.module.bp variable.other.property.ref.bp
+//      ^ meta.module.bp punctuation.separator.colon.bp
+//        ^ meta.module.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//         ^ meta.module.bp string.quoted.double.bp punctuation.definition.variable.bp
+//          ^^^^^^^^^^^^ meta.module.bp string.quoted.double.bp variable.other.module.bp
+//                      ^ meta.module.bp string.quoted.double.bp punctuation.definition.string.end.bp
+//                       ^ meta.module.bp punctuation.separator.comma.bp
+
+    srcs: [
+//  ^ meta.module.bp variable.other.property.ref.bp
+//      ^ meta.module.bp punctuation.separator.colon.bp
+//        ^ meta.module.bp meta.list.ref.bp punctuation.section.brackets.begin.bp
+        ":my_referenced_module",
+//      ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//       ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.variable.bp
+//        ^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+//                            ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.string.end.bp
+        "normal.file",
+//      ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//       ^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp
+//                  ^ string.quoted.double.bp punctuation.definition.string.end.bp
+//                   ^ meta.module.bp meta.list.ref.bp punctuation.separator.comma.bp
+        ":another_module",
+//      ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//       ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.variable.bp
+//        ^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+//                      ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.string.end.bp
+//                       ^ meta.module.bp meta.list.ref.bp punctuation.separator.comma.bp
+    ],
+//  ^ meta.module.bp meta.list.ref.bp punctuation.section.brackets.end.bp
+//   ^ meta.module.bp punctuation.separator.comma.bp
+}
+// <- meta.module.bp punctuation.section.braces.end.bp
+
+// --- Data Types ---
+a_string = "hello world"
+//         ^ string.quoted.double.bp
+//                     ^ string.quoted.double.bp
+a_raw_string = `raw "string"`
+//             ^ string.quoted.raw.bp
+//                          ^ string.quoted.raw.bp punctuation.definition.string.end.bp
+an_escaped_string = "esc\"aped"
+//                       ^ string.quoted.double.bp constant.character.escape.bp
+//                        ^ string.quoted.double.bp
+an_integer = 42
+//           ^^ constant.numeric.integer.bp
+a_negative_int = -100
+//               ^^^ constant.numeric.integer.bp
+a_bool_true = true
+//            ^^^^ constant.language.bp
+a_bool_false = false
+//             ^^^^^ constant.language.bp
+
+// --- Expressions ---
+// Variable usage and arithmetic
+another_var = my_variable + a_string
+// <- variable.other.assignment.bp
+//          ^ keyword.operator.assignment.bp
+//            ^^^^^^^^^^^ variable.other.bp
+//                        ^ keyword.operator.arithmetic.bp
+//                          ^^^^^^^^ variable.other.bp
+
+// --- List ---
+a_list = [
+//       ^ meta.list.bp punctuation.section.brackets.begin.bp
+    "string",
+//  ^ meta.list.bp string.quoted.double.bp
+//          ^ meta.list.bp punctuation.separator.comma.bp
+    123,
+//  ^^^ meta.list.bp constant.numeric.integer.bp
+//     ^ meta.list.bp punctuation.separator.comma.bp
+    true,
+//  ^^^^ meta.list.bp constant.language.bp
+//      ^ meta.list.bp punctuation.separator.comma.bp
+    another_var,
+//  ^^^^^^^^^^^ meta.list.bp variable.other.bp
+//             ^ meta.list.bp punctuation.separator.comma.bp
+]
+// <- meta.list.bp punctuation.section.brackets.end.bp
+
+// --- Map ---
+a_map = {
+//      ^ meta.map.bp punctuation.section.braces.begin.bp
+    key1: "value1" + "other",
+//  ^^^^ meta.map.bp variable.other.property.bp
+//      ^ meta.map.bp punctuation.separator.colon.bp
+//        ^ meta.map.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//         ^^^^^^^ meta.map.bp string.quoted.double.bp
+//                 ^ meta.map.bp keyword.operator.arithmetic.bp
+//                   ^ meta.map.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//                    ^^^^^^ meta.map.bp string.quoted.double.bp
+//                          ^ meta.map.bp punctuation.separator.comma.bp
+    key2: 123,
+//  ^ meta.map.bp variable.other.property.bp
+}
+// <- meta.map.bp punctuation.section.braces.end.bp
+
+// --- Select Expression ---
+a_select = select(arch(),
+//         ^^^^^^ meta.function-call.identifier.bp support.function.select.bp
+//               ^ meta.function-call.arguments.bp punctuation.section.parens.begin.bp
+//                ^^^^ meta.function-call.arguments.bp meta.function-call.identifier.bp variable.function.bp
+//                    ^ meta.function-call.arguments.bp meta.function-call.arguments.bp punctuation.section.parens.begin.bp
+//                     ^ meta.function-call.arguments.bp meta.function-call.arguments.bp punctuation.section.parens.end.bp
+//                      ^ meta.function-call.arguments.bp punctuation.separator.comma.bp
+    {
+//  ^ meta.function-call.arguments.bp meta.map.bp punctuation.section.braces.begin.bp
+        default: ["//foo"],
+//      ^^^^^^^ meta.function-call.arguments.bp meta.map.bp keyword.other.default.bp
+//             ^ meta.function-call.arguments.bp meta.map.bp punctuation.separator.colon.bp
+//               ^ meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.begin.bp
+//                ^ meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//                 ^^^^^^ meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp
+//                       ^ meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.end.bp
+//                        ^ meta.function-call.arguments.bp meta.map.bp punctuation.separator.comma.bp
+    },
+//  ^ meta.function-call.arguments.bp meta.map.bp punctuation.section.braces.end.bp
+//   ^ meta.function-call.arguments.bp punctuation.separator.comma.bp
+)
+// <- meta.function-call.arguments.bp punctuation.section.parens.end.bp
+
+some_rule {
+// <- support.class.bp
+//        ^ meta.module.bp punctuation.section.braces.begin.bp
+    enabled: select(soong_config_variable("namespace", "value"), {
+//  ^^^^^^^ meta.module.bp variable.other.property.bp
+//         ^ meta.module.bp punctuation.separator.colon.bp
+//           ^^^^^^ meta.module.bp meta.function-call.identifier.bp support.function.select.bp
+//                 ^ meta.module.bp meta.function-call.arguments.bp punctuation.section.parens.begin.bp
+//                  ^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.function-call.identifier.bp variable.function.bp
+//                                       ^ meta.module.bp meta.function-call.arguments.bp meta.function-call.arguments.bp punctuation.section.parens.begin.bp
+//                                        ^ meta.module.bp meta.function-call.arguments.bp meta.function-call.arguments.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//                                         ^^^^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.function-call.arguments.bp string.quoted.double.bp
+//                                                   ^ meta.module.bp meta.function-call.arguments.bp meta.function-call.arguments.bp punctuation.separator.comma.bp
+//                                                     ^ meta.module.bp meta.function-call.arguments.bp meta.function-call.arguments.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//                                                      ^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.function-call.arguments.bp string.quoted.double.bp
+//                                                            ^ meta.module.bp meta.function-call.arguments.bp meta.function-call.arguments.bp punctuation.section.parens.end.bp
+//                                                             ^ meta.module.bp meta.function-call.arguments.bp punctuation.separator.comma.bp
+//                                                               ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.section.braces.begin.bp
+        "arm": ["arm.c"],
+//      ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//       ^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp string.quoted.double.bp
+//           ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.colon.bp
+//             ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.begin.bp
+//              ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//               ^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp
+//                     ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.end.bp
+//                      ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.comma.bp
+        "x86": unset,
+//      ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//       ^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp string.quoted.double.bp
+//           ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.colon.bp
+//             ^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp constant.language.unset.bp
+//                  ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.comma.bp
+        true: false,
+//      ^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp constant.language.bp
+//          ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.colon.bp
+//            ^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp constant.language.bp
+//                 ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.comma.bp
+        any @ value: "bob" + value,
+//      ^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp keyword.other.default.bp
+//          ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp keyword.declaration.variable.bp
+//            ^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp variable.other.any.bp
+//                 ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.colon.bp
+//                   ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//                    ^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp string.quoted.double.bp
+//                         ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp keyword.operator.arithmetic.bp
+//                           ^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp variable.other.bp
+//                                ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.comma.bp
+        default: false,
+//      ^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp keyword.other.default.bp
+//             ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.colon.bp
+//               ^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp constant.language.bp
+//                    ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.comma.bp
+    }),
+//  ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.section.braces.end.bp
+//   ^ meta.module.bp meta.function-call.arguments.bp punctuation.section.parens.end.bp
+//    ^ meta.module.bp punctuation.separator.comma.bp
+    srcs: select((arch(), os()), {
+//  ^^^^ meta.module.bp variable.other.property.ref.bp
+//      ^ meta.module.bp punctuation.separator.colon.bp
+//        ^^^^^^ meta.module.bp meta.function-call.identifier.bp support.function.select.bp
+//              ^ meta.module.bp meta.function-call.arguments.bp punctuation.section.parens.begin.bp
+//               ^ meta.module.bp meta.function-call.arguments.bp meta.tuple.bp punctuation.section.parens.begin.bp
+//                ^^^^ meta.module.bp meta.function-call.arguments.bp meta.tuple.bp meta.function-call.identifier.bp variable.function.bp
+//                    ^ meta.module.bp meta.function-call.arguments.bp meta.tuple.bp meta.function-call.arguments.bp punctuation.section.parens.begin.bp
+//                     ^ meta.module.bp meta.function-call.arguments.bp meta.tuple.bp meta.function-call.arguments.bp punctuation.section.parens.end.bp
+//                      ^ meta.module.bp meta.function-call.arguments.bp meta.tuple.bp punctuation.separator.comma.bp
+//                        ^^ meta.module.bp meta.function-call.arguments.bp meta.tuple.bp meta.function-call.identifier.bp variable.function.bp
+//                          ^ meta.module.bp meta.function-call.arguments.bp meta.tuple.bp meta.function-call.arguments.bp punctuation.section.parens.begin.bp
+//                           ^ meta.module.bp meta.function-call.arguments.bp meta.tuple.bp meta.function-call.arguments.bp punctuation.section.parens.end.bp
+//                            ^ meta.module.bp meta.function-call.arguments.bp meta.tuple.bp punctuation.section.parens.end.bp
+//                             ^ meta.module.bp meta.function-call.arguments.bp punctuation.separator.comma.bp
+//                               ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.section.braces.begin.bp
+      ("arm", "linux"): ["arm_linux.c"],
+//    ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp punctuation.section.parens.begin.bp
+//     ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//      ^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp string.quoted.double.bp
+//          ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp punctuation.separator.comma.bp
+//            ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//             ^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp string.quoted.double.bp
+//                   ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp punctuation.section.parens.end.bp
+//                    ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.colon.bp
+//                      ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.begin.bp
+//                       ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//                        ^^^^^^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp
+//                                    ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.end.bp
+//                                     ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.comma.bp
+      (default, "darwin"): ["darwin_generic.c"],
+//    ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp punctuation.section.parens.begin.bp
+//     ^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp keyword.other.default.bp
+//            ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp punctuation.separator.comma.bp
+//              ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//               ^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp string.quoted.double.bp
+//                      ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp punctuation.section.parens.end.bp
+//                       ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.colon.bp
+//                         ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.begin.bp
+//                          ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//                           ^^^^^^^^^^^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp
+//                                            ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.end.bp
+//                                             ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.comma.bp
+      (any @ shellball, "true"): true,
+//     ^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp keyword.other.default.bp
+//         ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp keyword.declaration.variable.bp
+//           ^^^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp variable.other.any.bp
+//                    ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.
+//                      ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//                       ^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp string.quoted.double.bp
+//                             ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.colon.bp
+//                               ^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp constant.language.bp
+//                                   ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.comma.bp
+      (default, default): ["generic.c"],
+//    ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp punctuation.section.parens.begin.bp
+//     ^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp keyword.other.default.bp
+//            ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp punctuation.separator.comma.bp
+//              ^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp keyword.other.default.bp
+//                     ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.property.tuple.bp punctuation.section.parens.end.bp
+//                      ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.colon.bp
+//                        ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.begin.bp
+//                         ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//                          ^^^^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp
+//                                    ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.end.bp
+//                                     ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.comma.bp
+    }),
+//  ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.section.braces.end.bp
+//   ^ meta.module.bp meta.function-call.arguments.bp punctuation.section.parens.end.bp
+//    ^ meta.module.bp punctuation.separator.comma.bp
+
+    srcs: [
+//        ^ source.bp meta.module.bp meta.list.ref.bp punctuation.section.brackets.begin.bp
+        ":libfoo",
+//        ^ source.bp meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+    ] + select(soong_config_variable("otatools", "use_build_mixed_kernels_ramdisk"), {
+        true: [":build_mixed_kernels_ramdisk_host"],
+        default: [],
+    }) + [":hello"],
+}
+
+cc_library_static {
+// <- support.class.bp
+//                ^ meta.module.bp punctuation.section.braces.begin.bp
+    name: "libadbd_core",
+//  ^ meta.module.bp variable.other.property.name.bp
+//      ^ meta.module.bp punctuation.separator.colon.bp
+//        ^ meta.module.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//         ^^^^^^^^^^^^ meta.module.bp string.quoted.double.bp entity.name.module.bp
+//                     ^ meta.module.bp string.quoted.double.bp punctuation.definition.string.end.bp
+//                      ^ meta.module.bp punctuation.separator.comma.bp
+    defaults: [
+//  ^ meta.module.bp variable.other.property.ref.bp
+//          ^ meta.module.bp punctuation.separator.colon.bp
+//            ^ meta.module.bp meta.list.ref.bp punctuation.section.brackets.begin.bp
+        "adbd_defaults",
+//      ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//       ^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+//                    ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.string.end.bp
+//                     ^ meta.module.bp meta.list.ref.bp punctuation.separator.comma.bp
+        "host_adbd_supported",
+//      ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//       ^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+//                          ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.string.end.bp
+//                           ^ meta.module.bp meta.list.ref.bp punctuation.separator.comma.bp
+    ],
+//  ^ meta.module.bp meta.list.ref.bp punctuation.section.brackets.end.bp
+//   ^ meta.module.bp punctuation.separator.comma.bp
+    static_libs: [
+//  ^ meta.module.bp variable.other.property.ref.bp
+//             ^ meta.module.bp punctuation.separator.colon.bp
+//               ^ meta.module.bp meta.list.ref.bp punctuation.section.brackets.begin.bp
+        "libdiagnose_usb",
+//      ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//       ^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+//                      ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.string.end.bp
+//                       ^ meta.module.bp meta.list.ref.bp punctuation.separator.comma.bp
+        other_var,
+//      ^^^^^^^^^ meta.module.bp meta.list.ref.bp variable.other.bp
+//               ^ meta.module.bp meta.list.ref.bp punctuation.separator.comma.bp
+    ],
+//  ^ meta.module.bp meta.list.ref.bp punctuation.section.brackets.end.bp
+//   ^ meta.module.bp punctuation.separator.comma.bp
+}

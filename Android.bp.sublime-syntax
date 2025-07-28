@@ -1,0 +1,498 @@
+%YAML 1.2
+# Copyright (C) 2025 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+name: Android.bp
+file_extensions: [bp]
+scope: source.bp
+
+variables:
+  identifier: '\b[a-zA-Z_][a-zA-Z0-9_]*\b'
+  module_ref_property: '(?i)\b(key|src|srcs|libs|data|assets)\b'
+  module_list_property: '(?i)\b(certificate|defaults|deps|host_libs|jni_libs|required|static_libs|shared_libs|test_suites|target_libs)\b'
+
+contexts:
+  prototype:
+    - include: comments
+  or_invalid:
+    # Don't be too greedy to allow recovery.
+    - match: '\w'
+      scope: invalid.illegal.bp
+    - match: '\S'
+      scope: invalid.illegal.bp
+  or_pop:
+    - match: '(?=\S)'
+      pop: true
+
+  main:
+    - match: '(?={{identifier}})'
+      branch_point: module-or-assignment
+      branch:
+        - assignment
+        - module-definition
+    - include: or_invalid
+
+  comments:
+    - match: '//'
+      scope: punctuation.definition.comment.bp
+      push:
+        - meta_scope: comment.line.double-slash.bp
+        - match: $
+          pop: true
+    - match: '/\*'
+      scope: punctuation.definition.comment.bp
+      push:
+        - meta_scope: comment.block.bp
+        - match: '\*/'
+          scope: punctuation.definition.comment.bp
+          pop: true
+    - match: '#'
+      scope: invalid.illegal.comment.bp
+      push:
+        - meta_scope: comment.line.illegal.bp
+        - match: $
+          pop: true
+
+  assignment:
+    - match: '{{identifier}}'
+      scope: variable.other.assignment.bp
+      set: assignment-operator
+
+  assignment-operator:
+    - match: '(\+=|=)'
+      scope: keyword.operator.assignment.bp
+      set: expression
+    - match: '(?=\S)'
+      fail: module-or-assignment
+
+  module-definition:
+    - match: '{{identifier}}'
+      scope: support.class.bp
+      set: module-open
+
+  module-open:
+    - match: '{'
+      scope: punctuation.section.braces.begin.bp
+      set:
+        - module-body
+        - property
+    - match: '(?=\S)'
+      fail: module-or-assignment
+
+  module-body:
+    - meta_scope: meta.module.bp
+    - match: '}'
+      scope: punctuation.section.braces.end.bp
+      pop: 1
+    - match: ','
+      scope: punctuation.separator.comma.bp
+      push: property
+
+  # Must be pushed into its own scope.
+  property:
+    - match: 'name'
+      scope: variable.other.property.name.bp
+      set: name-property-value-colon
+    - match: '{{module_ref_property}}'
+      scope: variable.other.property.ref.bp
+      set: ref-property-value-colon
+    - match: '{{module_list_property}}'
+      scope: variable.other.property.ref.bp
+      set: module-list-property-value-colon
+    - match: '{{identifier}}'
+      scope: variable.other.property.bp
+      set: property-colon
+    - include: or_pop
+
+  property-colon:
+    - match: ':'
+      scope: punctuation.separator.colon.bp
+      set: expression
+    - include: or_pop
+
+  name-property-value-colon:
+    - match: ':'
+      scope: punctuation.separator.colon.bp
+      set: name-property-value
+    - include: or_pop
+
+  name-property-value:
+    - include: name-string
+    - include: expression
+
+  name-string:
+    - match: '"'
+      scope: punctuation.definition.string.begin.bp
+      push:
+        - meta_include_prototype: false
+        - meta_scope: string.quoted.double.bp
+        - meta_content_scope: entity.name.module.bp
+        - match: '"'
+          scope: punctuation.definition.string.end.bp
+          pop: 2
+
+  ref-property-value-colon:
+    - match: ':'
+      scope: punctuation.separator.colon.bp
+      set: ref-property-value
+    - include: or_pop
+
+  # Must have its own scope
+  ref-property-value:
+    - include: ref-list
+    - include: ref-string
+    - include: expression
+
+  ref-string:
+    - match: '"'
+      scope: punctuation.definition.string.begin.bp
+      push:
+        - meta_include_prototype: false
+        - meta_scope: string.quoted.double.bp
+        - match: '"'
+          scope: punctuation.definition.string.end.bp
+          pop: 2
+          # TODO: Do we need to support expression continuation?
+          # set: expression-continuation
+        - match: ':'
+          scope: punctuation.definition.variable.bp
+          push:
+            - meta_content_scope: variable.other.module.bp
+            - match: '(?=")'
+              pop: true
+
+  ref-list:
+    - match: '\['
+      scope: punctuation.section.brackets.begin.bp
+      push:
+        - ref-list-body
+        - ref-property-value
+  ref-list-body:
+    - meta_scope: meta.list.ref.bp
+    - match: '\]'
+      scope: punctuation.section.brackets.end.bp
+      pop: 2
+      set: ref-property-expression-continuation
+    - match: ','
+      scope: punctuation.separator.comma.bp
+      push: ref-property-value
+
+  ref-property-expression-continuation:
+    - match: '\+'
+      scope: keyword.operator.arithmetic.bp
+      set: ref-property-value
+    - match: '(?=\S)'
+      pop: true
+
+  module-list-property-value-colon:
+    - match: ':'
+      scope: punctuation.separator.colon.bp
+      set: module-list-property-value
+    - include: or_pop
+
+  # Must have its own scope
+  module-list-property-value:
+    - include: module-list
+    - include: expression
+
+  module-list:
+    - match: '\['
+      scope: punctuation.section.brackets.begin.bp
+      push:
+        - module-list-body
+        - module-list-value
+  module-list-body:
+    - meta_scope: meta.list.ref.bp
+    - match: '\]'
+      scope: punctuation.section.brackets.end.bp
+      pop: 2
+    - match: ','
+      scope: punctuation.separator.comma.bp
+      push: module-list-value
+
+  # Mut have its own scope
+  module-list-value:
+    - match: '"'
+      scope: punctuation.definition.string.begin.bp
+      push:
+        - meta_include_prototype: false
+        - meta_scope: string.quoted.double.bp
+        - meta_content_scope: variable.other.module.bp
+        - match: '"'
+          scope: punctuation.definition.string.end.bp
+          pop: 2
+    - include: expression
+
+  # NOTE on "Self-Popping" Contexts:
+  # The 'expression' context and its children are designed to be "self-popping".
+  # A context that includes 'expression' (like 'list-body' or 'assignment-operator')
+  # will 'push' it onto the stack and expect 'expression' to remove itself upon
+  # successfully parsing a value. This allows the parent context to immediately
+  # look for the next valid token (e.g., a comma in a list, or end-of-line in
+  # an assignment) without needing to handle the internals of the expression itself.
+  # This is a deliberate, though complex, design to maximize reusability of the
+  # expression-parsing logic while enforcing different continuation rules in
+  # different parent contexts.
+  expression:
+    - include: number
+    - include: boolean
+    - include: list
+    - include: strings
+    - include: map
+    - include: function-or-variable
+    - include: or_pop
+
+  expression-continuation:
+    - match: '\+'
+      scope: keyword.operator.arithmetic.bp
+      set: expression
+    - match: '(?=\S)'
+      pop: true
+
+  strings:
+    - match: '"'
+      scope: punctuation.definition.string.begin.bp
+      push: string-body
+    - match: '`'
+      scope: punctuation.definition.string.begin.bp
+      push: string-body-raw
+
+  string-body:
+    - meta_include_prototype: false
+    - meta_scope: string.quoted.double.bp
+    - match: '"'
+      scope: punctuation.definition.string.end.bp
+      pop: 2
+      set: expression-continuation
+    - match: '\\.'
+      scope: constant.character.escape.bp
+
+  string-body-raw:
+    - meta_include_prototype: false
+    - meta_scope: string.quoted.raw.bp
+    - match: '`'
+      scope: punctuation.definition.string.end.bp
+      pop: 2
+      set: expression-continuation
+
+  number:
+    - match: '-?\b[0-9]+\b'
+      scope: constant.numeric.integer.bp
+      set: expression-continuation
+
+  boolean:
+    - match: '\b(true|false)\b'
+      scope: constant.language.bp
+      set: expression-continuation
+
+  list:
+    - match: '\['
+      scope: punctuation.section.brackets.begin.bp
+      push:
+        - list-body
+        - expression
+  list-body:
+    - meta_scope: meta.list.bp
+    - match: '\]'
+      scope: punctuation.section.brackets.end.bp
+      pop: 2
+      set: expression-continuation
+    - match: ','
+      scope: punctuation.separator.comma.bp
+      push: expression
+
+  map:
+    - match: '\{'
+      scope: punctuation.section.braces.begin.bp
+      push:
+        - map-body
+        - property
+
+  map-body:
+    - meta_scope: meta.map.bp
+    - match: '\}'
+      scope: punctuation.section.braces.end.bp
+      pop: 2
+      set: expression-continuation
+    - match: ','
+      scope: punctuation.separator.comma.bp
+      push: property
+    - include: or_invalid
+
+  variable:
+    - match: '\b({{identifier}})\b'
+      scope: variable.other.bp
+      pop: 2
+      set: expression-continuation
+
+  function-or-variable:
+    - match: '(?={{identifier}})'
+      branch_point: function-or-variable
+      branch:
+        - function
+        - variable
+  function:
+    - match: 'select'
+      scope: meta.function-call.identifier.bp support.function.select.bp
+      set: select-function-args
+    - match: '{{identifier}}'
+      scope: meta.function-call.identifier.bp variable.function.bp
+      set: function-args
+  function-args:
+    - match: '\('
+      scope: punctuation.section.parens.begin.bp
+      push:
+        - function-args-list
+        - expression
+    - match: '(?=\S)'
+      fail: function-or-variable
+  function-args-list:
+    - meta_scope: meta.function-call.arguments.bp
+    - match: '\)'
+      scope: punctuation.section.parens.end.bp
+      pop: 3
+      set: expression-continuation
+    - match: ','
+      scope: punctuation.separator.comma.bp
+      push: expression
+
+  select-function-args:
+    - match: '\('
+      scope: punctuation.section.parens.begin.bp
+      push:
+        - select-function-args-list
+        - select-value
+    - match: '(?=\S)'
+      fail: function-or-variable
+
+  select-function-args-list:
+    - meta_scope: meta.function-call.arguments.bp
+    - match: '\)'
+      scope: punctuation.section.parens.end.bp
+      pop: 3
+      set: expression-continuation
+    - match: ','
+      scope: punctuation.separator.comma.bp
+      push: select-value
+    - include: or_invalid
+
+  select-value:
+    - include: select-map
+    - include: select-tuple
+    - include: expression
+
+  select-tuple:
+    - match: '\('
+      scope: punctuation.section.parens.begin.bp
+      push:
+        - select-tuple-body
+        - tuple-value
+
+  select-tuple-body:
+    - meta_scope: meta.tuple.bp
+    - match: '\)'
+      scope: punctuation.section.parens.end.bp
+      pop: 2
+      set: expression-continuation
+    - match: ','
+      scope: punctuation.separator.comma.bp
+      push: tuple-value
+    - include: or_invalid
+
+  tuple-value:
+    - match: 'default'
+      scope: keyword.other.default.bp
+      pop: true
+    - include: expression
+
+  select-property-colon:
+    - match: ':'
+      scope: punctuation.separator.colon.bp
+      set: select-property-value
+    - include: or_pop
+
+  select-property-value:
+    - match: 'unset'
+      scope: constant.language.unset.bp
+      pop: true
+    - include: expression
+
+  select-map:
+    - match: '\{'
+      scope: punctuation.section.braces.begin.bp
+      push:
+        - select-map-body
+        - select-property
+
+  select-map-body:
+    - meta_scope: meta.map.bp
+    - match: '\}'
+      scope: punctuation.section.braces.end.bp
+      pop: 2
+      set: expression-continuation
+    - match: ','
+      scope: punctuation.separator.comma.bp
+      push: select-property
+    - include: or_invalid
+
+  # Must be pushed into its own scope.
+  select-property:
+    - match: '"'
+      scope: punctuation.definition.string.begin.bp
+      push: select-string-body
+    - match: '\('
+      scope: punctuation.section.parens.begin.bp
+      push:
+        - select-body-tuple-property
+        - select-property
+    - match: '\b(:?true|false)\b'
+      scope: constant.language.bp
+      set: select-property-colon
+    - match: 'default'
+      scope: keyword.other.default.bp
+      set: select-property-colon
+    - match: 'any'
+      scope: keyword.other.default.bp
+      set: any-at
+    - include: or_pop
+
+  select-body-tuple-property:
+    - meta_scope: meta.property.tuple.bp
+    - match: '\)'
+      scope: punctuation.section.parens.end.bp
+      pop: 2
+      set: select-property-colon
+    - match: ','
+      scope: punctuation.separator.comma.bp
+      push: select-property
+    - include: or_invalid
+
+  any-at:
+    - match: '@'
+      scope: keyword.declaration.variable.bp
+      set: any-variable
+    - include: or_pop
+  any-variable:
+    - match: '{{identifier}}'
+      scope: variable.other.any.bp
+      set: select-property-colon
+    - include: or_pop
+
+  select-string-body:
+    - meta_include_prototype: false
+    - meta_scope: string.quoted.double.bp
+    - match: '"'
+      scope: punctuation.definition.string.end.bp
+      pop: 2
+      set: select-property-colon
