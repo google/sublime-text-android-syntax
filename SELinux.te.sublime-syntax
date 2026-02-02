@@ -15,7 +15,7 @@
 ---
 name: SELinux.te
 file_extensions: [te]
-scope: source.te
+scope: source.selinux-te
 
 variables:
   identifier: '\b[a-zA-Z_][a-zA-Z0-9_]*\b'

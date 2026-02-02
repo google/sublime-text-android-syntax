@@ -22,7 +22,7 @@ file_extensions:
   - "seapp_contexts"
   - "initial_sid_contexts"
   - "vndservice_contexts"
-scope: source.selinux.contexts
+scope: source.selinux-contexts
 
 variables:
   identifier: '\b[a-zA-Z_][a-zA-Z0-9_]*\b'
