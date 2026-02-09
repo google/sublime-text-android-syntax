@@ -96,7 +96,7 @@ type_transition unconfined_t etc_t : file system_conf_t eric;
 #                                                           ^ punctuation.terminator.statement.te
 
 # --- M4 Macros ---
-define(`my_macro`, `
+define(`my_macro', `
 # <- keyword.control.preprocessor.te
 #     ^ punctuation.section.parens.begin.te
 #      ^ punctuation.definition.string.begin.te
@@ -107,7 +107,7 @@ define(`my_macro`, `
 allow $1 $2:fd use;
 #     ^ variable.parameter.m4.te
 #        ^ variable.parameter.m4.te
-`)
+')
 # <- punctuation.definition.string.end.te
 #^ punctuation.section.parens.end.te
 
@@ -124,7 +124,7 @@ userdebug_or_eng(`
 #                ^ punctuation.definition.string.begin.te
   allow domain su:fd use;
 # ^^^^^ keyword.control.te
-`)
+')
 # <- punctuation.definition.string.end.te
 
 # --- Permission Sets ---
@@ -280,3 +280,61 @@ constrain process transition ( r1 == r2 );
 #                                    ^ meta.parens.expression.te variable.language.constraint.te
 #                                       ^ punctuation.section.parens.end.te
 #                                        ^ punctuation.terminator.statement.te
+
+# --- New Test Cases (Bugs) ---
+
+full_treble_only(`
+# <- variable.function.macro.te
+#               ^ punctuation.section.parens.begin.te
+#                ^ punctuation.definition.string.begin.te
+  neverallow {
+# ^^^^^^^^^ keyword.control.te
+#            ^ punctuation.section.braces.begin.te
+    coredomain
+#   ^ storage.type.te
+    -shell
+#   ^ keyword.operator.set.te
+#    ^ storage.type.te
+    userdebug_or_eng(`-su')
+#   ^ variable.function.macro.te
+#                   ^ punctuation.section.parens.begin.te
+#                    ^ punctuation.definition.string.begin.te
+#                     ^ keyword.operator.set.te
+#                      ^ storage.type.te
+#                        ^ punctuation.definition.string.end.te
+#                         ^ punctuation.section.parens.end.te
+    -ueventd
+#   ^ keyword.operator.set.te
+#    ^ storage.type.te
+  } vndbinder_device:chr_file rw_file_perms;
+# ^ punctuation.section.braces.end.te
+#   ^ storage.type.te
+#                   ^ punctuation.separator.colon.te
+#                    ^ support.class.te
+#                             ^ keyword.other.permission-set.te
+#                                          ^ punctuation.terminator.statement.te
+')
+# <- punctuation.definition.string.end.te
+#^ punctuation.section.parens.end.te
+
+define(`dumpable_domain',`{
+# <- keyword.control.preprocessor.te
+#     ^ punctuation.section.parens.begin.te
+#      ^ punctuation.definition.string.begin.te
+#       ^ entity.name.function.macro.te
+#                      ^ punctuation.definition.string.end.te
+#                       ^ punctuation.separator.comma.te
+#                        ^ punctuation.definition.string.begin.te
+#                         ^ punctuation.section.braces.begin.te
+  domain
+# ^ storage.type.te
+  -apexd
+# ^ keyword.operator.set.te
+#  ^ storage.type.te
+  -bpfloader
+# ^ keyword.operator.set.te
+#  ^ storage.type.te
+}')
+# <- punctuation.section.braces.end.te
+#^ punctuation.definition.string.end.te
+# ^ punctuation.section.parens.end.te

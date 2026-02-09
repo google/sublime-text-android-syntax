@@ -40,7 +40,7 @@ contexts:
     - include: invalid-characters
 
   unrecognized-statement:
-    - match: '^\s*({{identifier}})'
+    - match: '\s*({{identifier}})'
       captures:
         1: invalid.illegal.unrecognized-statement.te
 
@@ -57,47 +57,47 @@ contexts:
           pop: true
 
   invalid-characters:
-    - match: '[^a-zA-Z0-9_#\s\.;{}("\)\-`]' # Corrected escaping for " and \.
+    - match: '[^a-zA-Z0-9_#\s\.;{}("\)\-`'']'
       scope: invalid.illegal.te
 
   declarations:
-    - match: '^\s*(type)\b'
+    - match: '\s*(type)\b'
       scope: keyword.declaration.te
       push: type-declaration-body
-    - match: '^\s*(typealias)\b'
+    - match: '\s*(typealias)\b'
       scope: keyword.declaration.te
       push: typealias-declaration-body
-    - match: '^\s*(attribute)\b'
+    - match: '\s*(attribute)\b'
       scope: keyword.declaration.te
       push: attribute-declaration-body
-    - match: '^\s*(typeattribute)\b'
+    - match: '\s*(typeattribute)\b'
       scope: keyword.declaration.te
       push: typeattribute-declaration-body
-    - match: '^\s*(role)\b'
+    - match: '\s*(role)\b'
       scope: keyword.declaration.te
       push: role-declaration-body
-    - match: '^\s*(class)\b'
+    - match: '\s*(class)\b'
       scope: keyword.declaration.te
       push: class-declaration-body
-    - match: '^\s*(common)\b'
+    - match: '\s*(common)\b'
       scope: keyword.declaration.te
       push: common-declaration-body
-    - match: '^\s*(bool)\b'
+    - match: '\s*(bool)\b'
       scope: keyword.declaration.te
       push: bool-declaration-body
-    - match: '^\s*(sensitivity)\b'
+    - match: '\s*(sensitivity)\b'
       scope: keyword.declaration.te
       push: sensitivity-declaration-body
-    - match: '^\s*(category)\b'
+    - match: '\s*(category)\b'
       scope: keyword.declaration.te
       push: category-declaration-body
-    - match: '^\s*(attribute_role)\b'
+    - match: '\s*(attribute_role)\b'
       scope: keyword.declaration.te
       push: attribute-role-declaration-body
-    - match: '^\s*(dominance)\b'
+    - match: '\s*(dominance)\b'
       scope: keyword.declaration.te
       push: dominance-declaration-body
-    - match: '^\s*(level)\b'
+    - match: '\s*(level)\b'
       scope: keyword.declaration.te
       push: level-declaration-body
 
@@ -411,13 +411,13 @@ contexts:
     - match: '\b(type_transition)\b'
       scope: keyword.control.te
       push: type-transition-rule-body
-    - match: '{{xperm_keywords}}'
+    - match: '\s*{{xperm_keywords}}'
       scope: keyword.control.te
       push: xperm-rule-body
-    - match: '{{simple_rules}}'
+    - match: '\s*{{simple_rules}}'
       scope: keyword.control.te
       push: simple-rule-body
-    - match: '{{fs_labeling_rules}}'
+    - match: '\s*{{fs_labeling_rules}}'
       scope: keyword.control.te
       push: fs-label-rule-body
     - match: '\b(portcon)\b'
@@ -429,13 +429,13 @@ contexts:
     - match: '\b(nodecon)\b'
       scope: keyword.control.te
       push: nodecon-rule-body
-    - match: '{{hw_labeling_rules}}'
+    - match: '\s*{{hw_labeling_rules}}'
       scope: keyword.control.te
       push: hw-label-rule-body
     - match: '\b(type_change)\b'
       scope: keyword.control.te
       push: type-change-rule-body
-    - match: '{{rule_keywords}}'
+    - match: '\s*{{rule_keywords}}'
       scope: keyword.control.te
       push: rule-body
 
@@ -838,6 +838,8 @@ contexts:
       scope: constant.language.te
     - match: '\b(else)\b'
       scope: keyword.control.conditional.te
+    - include: m4-macros
+    - include: m4-variables
     - match: '{{identifier}}'
       scope: storage.type.te
 
@@ -869,6 +871,9 @@ contexts:
     - include: or_pop
 
   common-constructs:
+    - include: m4-macros
+    - include: m4-variables
+    - include: strings
     - include: parens-block
     - include: braces-block
     - include: set-operators
@@ -903,6 +908,7 @@ contexts:
         - match: '}'
           scope: punctuation.section.braces.end.te
           pop: true
+        - include: m4-macros
         - match: '{{identifier}}'
           scope: entity.other.sensitivity.te
         - include: set-operators
@@ -915,6 +921,7 @@ contexts:
         - match: '}'
           scope: punctuation.section.braces.end.te
           pop: true
+        - include: m4-macros
         - match: '{{identifier}}'
           scope: storage.type.te
         - include: set-operators
@@ -927,6 +934,7 @@ contexts:
         - match: '}'
           scope: punctuation.section.braces.end.te
           pop: true
+        - include: m4-macros
         - match: '{{identifier}}'
           scope: storage.type.te
         - include: set-operators
@@ -939,6 +947,7 @@ contexts:
         - match: '}'
           scope: punctuation.section.braces.end.te
           pop: true
+        - include: m4-macros
         - match: '{{identifier}}'
           scope: support.class.te
         - include: set-operators
@@ -951,6 +960,7 @@ contexts:
         - match: '}'
           scope: punctuation.section.braces.end.te
           pop: true
+        - include: m4-macros
         - match: '{{identifier}}'
           scope: entity.name.permission.te
         - include: set-operators
@@ -963,6 +973,7 @@ contexts:
         - match: '}'
           scope: punctuation.section.braces.end.te
           pop: true
+        - include: m4-macros
         - match: '{{identifier}}'
           scope: constant.other.permission.te
         - include: set-operators
@@ -975,6 +986,7 @@ contexts:
         - match: '}'
           scope: punctuation.section.braces.end.te
           pop: true
+        - include: m4-macros
         - match: '{{identifier}}'
           scope: constant.other.command.te
         - include: set-operators
@@ -995,12 +1007,28 @@ contexts:
           scope: constant.character.escape.te
     - match: '`'
       scope: punctuation.definition.string.begin.te
-      push:
-        - meta_scope: string.quoted.raw.te
-        - match: '`'
-          scope: punctuation.definition.string.end.te
-          pop: true
-        - include: rules
+      push: m4-raw-string
+
+  m4-raw-string:
+    - meta_scope: string.quoted.raw.te
+    - match: "'"
+      scope: punctuation.definition.string.end.te
+      pop: true
+    - match: "`"
+      scope: punctuation.definition.string.begin.te
+      push: m4-raw-string
+    - include: m4-variables
+    - include: declarations
+    - include: m4-declarations
+    - include: m4-macros
+    - include: rules
+    - include: comments
+    - include: common-constructs # Added to support fragments
+    - include: unrecognized-statement
+
+  m4-variables:
+    - match: '\$[0-9]+'
+      scope: variable.parameter.m4.te
 
   identifiers-and-keywords:
     - match: '\b(self)\b'
@@ -1040,7 +1068,6 @@ contexts:
   m4-macro-args:
     - match: ','
       scope: punctuation.separator.comma.te
-    - include: strings
     - include: common-constructs
 
   m4-define-body:
@@ -1057,7 +1084,7 @@ contexts:
       push:
         - meta_scope: string.quoted.raw.te
         - meta_content_scope: entity.name.function.macro.te
-        - match: '`'
+        - match: "'"
           scope: punctuation.definition.string.end.te
           pop: true
     - match: ','
@@ -1072,13 +1099,7 @@ contexts:
     - meta_scope: meta.declaration.macro.body.te
     - match: '`'
       scope: punctuation.definition.string.begin.te
-      push:
-        - meta_scope: string.quoted.raw.te
-        - match: '\$[0-9]+'
-          scope: variable.parameter.m4.te
-        - match: '`'
-          scope: punctuation.definition.string.end.te
-          pop: true
+      push: m4-raw-string
     - match: '(?=\))'
       set: m4-define-after-opening-paren
     - include: or_pop
