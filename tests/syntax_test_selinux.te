@@ -338,3 +338,89 @@ define(`dumpable_domain',`{
 # <- punctuation.section.braces.end.te
 #^ punctuation.definition.string.end.te
 # ^ punctuation.section.parens.end.te
+
+userdebug_or_eng(`
+# <- variable.function.macro.te
+#               ^ punctuation.section.parens.begin.te
+#                ^ punctuation.definition.string.begin.te
+  # Allow shell to execute profcollectctl without a domain transition.
+  allow shell profcollectd_exec:file rx_file_perms;
+# ^ keyword.control.te
+#       ^ storage.type.te
+#             ^ storage.type.te
+#                              ^ punctuation.separator.colon.te
+#                               ^ support.class.te
+#                                    ^ keyword.other.permission-set.te
+#                                                 ^ punctuation.terminator.statement.te
+
+  # Allow shell to read profcollectd data files.
+  r_dir_file(shell, profcollectd_data_file)
+# ^ variable.function.macro.te
+#            ^ storage.type.te
+#                 ^ punctuation.separator.comma.te
+#                   ^ storage.type.te
+#                                         ^ punctuation.section.parens.end.te
+
+  # Allow to issue control commands to profcollectd binder service.
+  allow shell profcollectd:binder call;
+# ^ keyword.control.te
+#       ^ storage.type.te
+#             ^ storage.type.te
+#                         ^ punctuation.separator.colon.te
+#                          ^ support.class.te
+#                                 ^ constant.other.permission.te
+#                                     ^ punctuation.terminator.statement.te
+')
+# <- punctuation.definition.string.end.te
+#^ punctuation.section.parens.end.te
+
+neverallowxperm shell domain:{ rawip_socket tcp_socket udp_socket } ioctl priv_sock_ioctls;
+# <- keyword.control.te
+#               ^ storage.type.te
+#                     ^ storage.type.te
+#                           ^ punctuation.separator.colon.te
+#                            ^ meta.braces.classes.te punctuation.section.braces.begin.te
+#                              ^ meta.braces.classes.te support.class.te
+#                                           ^ meta.braces.classes.te support.class.te
+#                                                      ^ meta.braces.classes.te support.class.te
+#                                                                 ^ meta.braces.classes.te punctuation.section.braces.end.te
+#                                                                   ^ keyword.other.operation.te
+#                                                                         ^ constant.other.command.te
+#                                                                                         ^ punctuation.terminator.statement.te
+
+neverallow shell {dev_type -apex_dm_device}:blk_file ~getattr;
+# <- keyword.control.te
+#          ^ storage.type.te
+#                ^ meta.braces.types.te punctuation.section.braces.begin.te
+#                 ^ meta.braces.types.te storage.type.te
+#                          ^ meta.braces.types.te keyword.operator.set.te
+#                           ^ meta.braces.types.te storage.type.te
+#                                         ^ meta.braces.types.te punctuation.section.braces.end.te
+#                                          ^ punctuation.separator.colon.te
+#                                           ^ support.class.te
+#                                                    ^ keyword.operator.set.te
+#                                                     ^ constant.other.permission.te
+#                                                            ^ punctuation.terminator.statement.te
+
+neverallow shell self:perf_event ~{ open read write kernel };
+# <- keyword.control.te
+#          ^ storage.type.te
+#                ^ variable.language.self.te
+#                    ^ punctuation.separator.colon.te
+#                     ^ support.class.te
+#                                ^ keyword.operator.set.te
+#                                 ^ meta.braces.permissions.te punctuation.section.braces.begin.te
+#                                   ^ meta.braces.permissions.te constant.other.permission.te
+#                                        ^ meta.braces.permissions.te constant.other.permission.te
+#                                             ^ meta.braces.permissions.te constant.other.permission.te
+#                                                   ^ meta.braces.permissions.te constant.other.permission.te
+#                                                          ^ meta.braces.permissions.te punctuation.section.braces.end.te
+#                                                           ^ punctuation.terminator.statement.te
+
+typeattribute shell coredomain, mlstrustedsubject;
+# <- keyword.declaration.te
+#             ^ storage.type.te
+#                   ^ entity.other.attribute.te
+#                             ^ punctuation.separator.comma.te
+#                               ^ entity.other.attribute.te
+#                                                ^ punctuation.terminator.statement.te

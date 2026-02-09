@@ -236,6 +236,8 @@ contexts:
 
   typeattribute-after-type:
     - meta_scope: meta.declaration.typeattribute.te
+    - match: ','
+      scope: punctuation.separator.comma.te
     - match: '({{identifier}})'
       captures:
         1: entity.other.attribute.te
@@ -793,6 +795,11 @@ contexts:
 
   xperm-after-colon:
     - meta_scope: meta.rule.xperm.te
+    - match: '{'
+      scope: punctuation.section.braces.begin.te
+      set:
+        - xperm-after-class
+        - xperm-class-set-body
     - match: '{{identifier}}'
       scope: support.class.te
       set: xperm-after-class
@@ -800,6 +807,16 @@ contexts:
       scope: punctuation.terminator.statement.te
       pop: true
     - include: or_pop
+
+  xperm-class-set-body:
+    - meta_scope: meta.braces.classes.te
+    - match: '}'
+      scope: punctuation.section.braces.end.te
+      pop: true
+    - include: m4-macros
+    - match: '{{identifier}}'
+      scope: support.class.te
+    - include: set-operators
 
   xperm-after-class:
     - meta_scope: meta.rule.xperm.te
@@ -863,6 +880,7 @@ contexts:
     - match: ';'
       scope: punctuation.terminator.statement.te
       pop: true
+    - include: set-operators
     - include: braces-block-of-rule-permissions
     - match: '{{permission_sets}}'
       scope: keyword.other.permission-set.te
@@ -1054,7 +1072,7 @@ contexts:
       push: m4-define-body
 
   m4-macros:
-    - match: '({{identifier}})(\()'
+    - match: '\s*({{identifier}})(\()'
       captures:
         1: variable.function.macro.te
         2: punctuation.section.parens.begin.te
