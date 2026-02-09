@@ -397,3 +397,87 @@ cc_library_static {
 //  ^ meta.module.bp meta.list.ref.bp punctuation.section.brackets.end.bp
 //   ^ meta.module.bp punctuation.separator.comma.bp
 }
+
+// --- Expression in Module List Property ---
+phony {
+// <- support.class.bp
+//    ^ meta.module.bp punctuation.section.braces.begin.bp
+    name: "selinux_policy_odm",
+//  ^^^^ meta.module.bp variable.other.property.name.bp
+//      ^ meta.module.bp punctuation.separator.colon.bp
+//         ^^^^^^^^^^^^^^^^^^ meta.module.bp string.quoted.double.bp entity.name.module.bp
+//                            ^ meta.module.bp punctuation.separator.comma.bp
+    required: [
+//  ^^^^^^^^ meta.module.bp variable.other.property.ref.bp
+//          ^ meta.module.bp punctuation.separator.colon.bp
+//            ^ meta.module.bp meta.list.ref.bp punctuation.section.brackets.begin.bp
+        "odm_sepolicy.cil",
+//      ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.string.begin.bp
+//       ^^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+//                       ^ meta.module.bp meta.list.ref.bp string.quoted.double.bp punctuation.definition.string.end.bp
+//                        ^ meta.module.bp meta.list.ref.bp punctuation.separator.comma.bp
+        "odm_file_contexts",
+//       ^^^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+        "odm_file_contexts_test",
+//       ^^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+        "odm_seapp_contexts",
+//       ^^^^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+        "odm_property_contexts",
+//       ^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+        "odm_property_contexts_test",
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+        "odm_service_contexts",
+//       ^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+        "odm_service_contexts_test",
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+        "odm_hwservice_contexts",
+//       ^^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+        "odm_hwservice_contexts_test",
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+        "odm_mac_permissions.xml",
+//       ^^^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.list.ref.bp string.quoted.double.bp variable.other.module.bp
+    ] + select(soong_config_variable("ANDROID", "PRODUCT_PRECOMPILED_SEPOLICY"), {
+//  ^ meta.module.bp meta.list.ref.bp punctuation.section.brackets.end.bp
+//    ^ meta.module.bp keyword.operator.arithmetic.bp
+//      ^^^^^^ meta.module.bp meta.function-call.identifier.bp support.function.select.bp
+//            ^ meta.module.bp meta.function-call.arguments.bp punctuation.section.parens.begin.bp
+//             ^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.function-call.identifier.bp variable.function.bp
+//                                  ^ meta.module.bp meta.function-call.arguments.bp meta.function-call.arguments.bp punctuation.section.parens.begin.bp
+//                                   ^^^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.function-call.arguments.bp string.quoted.double.bp
+//                                            ^ meta.module.bp meta.function-call.arguments.bp meta.function-call.arguments.bp punctuation.separator.comma.bp
+//                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.function-call.arguments.bp string.quoted.double.bp
+//                                                                            ^ meta.module.bp meta.function-call.arguments.bp meta.function-call.arguments.bp punctuation.section.parens.end.bp
+//                                                                             ^ meta.module.bp meta.function-call.arguments.bp punctuation.separator.comma.bp
+//                                                                               ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.section.braces.begin.bp
+        true: [
+//      ^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp constant.language.bp
+//          ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.colon.bp
+//            ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.begin.bp
+            "precompiled_sepolicy",
+//          ^^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp
+            "precompiled_sepolicy.plat_sepolicy_and_mapping.sha256",
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp
+            "precompiled_sepolicy.system_ext_sepolicy_and_mapping.sha256",
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp
+            "precompiled_sepolicy.product_sepolicy_and_mapping.sha256",
+//          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp string.quoted.double.bp
+        ],
+//      ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.end.bp
+//       ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.comma.bp
+        default: [],
+//      ^^^^^^^ meta.module.bp meta.function-call.arguments.bp meta.map.bp keyword.other.default.bp
+//             ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.colon.bp
+//               ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.begin.bp
+//                ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp meta.list.bp punctuation.section.brackets.end.bp
+//                 ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.separator.comma.bp
+    }),
+//  ^ meta.module.bp meta.function-call.arguments.bp meta.map.bp punctuation.section.braces.end.bp
+//   ^ meta.module.bp meta.function-call.arguments.bp punctuation.section.parens.end.bp
+//    ^ meta.module.bp punctuation.separator.comma.bp
+    device_specific: true,
+//  ^^^^^^^^^^^^^^^ meta.module.bp variable.other.property.bp
+//                 ^ meta.module.bp punctuation.separator.colon.bp
+//                   ^^^^ meta.module.bp constant.language.bp
+//                       ^ meta.module.bp punctuation.separator.comma.bp
+}
+// <- meta.module.bp punctuation.section.braces.end.bp

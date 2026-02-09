@@ -217,9 +217,17 @@ contexts:
     - match: '\]'
       scope: punctuation.section.brackets.end.bp
       pop: 2
+      set: module-list-expression-continuation
     - match: ','
       scope: punctuation.separator.comma.bp
       push: module-list-value
+
+  module-list-expression-continuation:
+    - match: '\+'
+      scope: keyword.operator.arithmetic.bp
+      set: module-list-property-value
+    - match: '(?=\S)'
+      pop: true
 
   # Mut have its own scope
   module-list-value:
